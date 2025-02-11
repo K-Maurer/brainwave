@@ -1,0 +1,4 @@
+
+project_id = "xaxugthzwjaafuzamibn"
+[functions.upload-document]
+verify_jwt = true
