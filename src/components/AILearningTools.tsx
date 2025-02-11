@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
-import { Loader2, BookOpen, BrainCircuit, Cards, Network } from "lucide-react";
+import { Loader2, BookOpen, BrainCircuit, Layers, Network } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 
@@ -164,7 +164,7 @@ export function AILearningTools({ documentId, documentText }: AILearningToolsPro
               <span className="hidden sm:inline">Quiz</span>
             </TabsTrigger>
             <TabsTrigger value="flashcards" className="flex items-center gap-2">
-              <Cards className="h-4 w-4" />
+              <Layers className="h-4 w-4" />
               <span className="hidden sm:inline">Lernkarten</span>
             </TabsTrigger>
             <TabsTrigger value="mindmap" className="flex items-center gap-2">
