@@ -9,6 +9,50 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      adaptive_learning_goals: {
+        Row: {
+          adjustment_factor: number
+          created_at: string
+          current_target: number
+          document_id: string
+          goal_type: string
+          id: string
+          initial_target: number
+          last_adjustment: string | null
+          user_id: string
+        }
+        Insert: {
+          adjustment_factor?: number
+          created_at?: string
+          current_target: number
+          document_id: string
+          goal_type: string
+          id?: string
+          initial_target: number
+          last_adjustment?: string | null
+          user_id: string
+        }
+        Update: {
+          adjustment_factor?: number
+          created_at?: string
+          current_target?: number
+          document_id?: string
+          goal_type?: string
+          id?: string
+          initial_target?: number
+          last_adjustment?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "adaptive_learning_goals_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ai_generated_content: {
         Row: {
           content: Json

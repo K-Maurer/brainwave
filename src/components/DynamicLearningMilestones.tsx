@@ -16,6 +16,11 @@ interface DynamicMilestone {
   completed: boolean;
 }
 
+interface AdaptiveMilestone {
+  current_target: number;
+  adjustment_factor: number;
+}
+
 interface DynamicLearningMilestonesProps {
   documentId: string;
 }
@@ -23,11 +28,13 @@ interface DynamicLearningMilestonesProps {
 export function DynamicLearningMilestones({ documentId }: DynamicLearningMilestonesProps) {
   const { user } = useAuth();
   const [milestones, setMilestones] = useState<DynamicMilestone[]>([]);
+  const [adaptiveGoals, setAdaptiveGoals] = useState<Record<string, AdaptiveMilestone>>({});
 
   useEffect(() => {
     if (!user) return;
 
     const fetchMilestones = async () => {
+      // Hole normale Meilensteine
       const { data, error } = await supabase
         .from('dynamic_learning_milestones')
         .select('*')
@@ -39,12 +46,32 @@ export function DynamicLearningMilestones({ documentId }: DynamicLearningMilesto
         return;
       }
 
+      // Hole adaptive Ziele
+      const { data: adaptiveData, error: adaptiveError } = await supabase
+        .from('adaptive_learning_goals')
+        .select('goal_type, current_target, adjustment_factor')
+        .eq('document_id', documentId)
+        .eq('user_id', user.id);
+
+      if (adaptiveError) {
+        console.error('Error fetching adaptive goals:', adaptiveError);
+      } else if (adaptiveData) {
+        const goalsMap = adaptiveData.reduce((acc, goal) => ({
+          ...acc,
+          [goal.goal_type]: {
+            current_target: goal.current_target,
+            adjustment_factor: goal.adjustment_factor
+          }
+        }), {});
+        setAdaptiveGoals(goalsMap);
+      }
+
       if (data && data.length === 0) {
         // Erstelle Standard-Meilensteine, wenn keine existieren
         const defaultMilestones = [
-          { milestone_type: 'study_time', target_value: 30, current_value: 0 }, // 30 Minuten Lernzeit
-          { milestone_type: 'comprehension', target_value: 80, current_value: 0 }, // 80% Verständnis
-          { milestone_type: 'focus_score', target_value: 90, current_value: 0 }, // 90% Fokus
+          { milestone_type: 'study_time', target_value: 30, current_value: 0 },
+          { milestone_type: 'comprehension', target_value: 80, current_value: 0 },
+          { milestone_type: 'focus_score', target_value: 90, current_value: 0 },
         ];
 
         for (const milestone of defaultMilestones) {
@@ -73,6 +100,47 @@ export function DynamicLearningMilestones({ documentId }: DynamicLearningMilesto
     };
 
     fetchMilestones();
+
+    // Echtzeit-Updates für Meilensteine
+    const milestonesSubscription = supabase
+      .channel('dynamic_learning_milestones_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'dynamic_learning_milestones',
+          filter: `document_id=eq.${documentId}`,
+        },
+        (payload) => {
+          console.log('Milestone changed:', payload);
+          fetchMilestones();
+        }
+      )
+      .subscribe();
+
+    // Echtzeit-Updates für adaptive Ziele
+    const adaptiveGoalsSubscription = supabase
+      .channel('adaptive_learning_goals_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'adaptive_learning_goals',
+          filter: `document_id=eq.${documentId}`,
+        },
+        (payload) => {
+          console.log('Adaptive goal changed:', payload);
+          fetchMilestones();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      milestonesSubscription.unsubscribe();
+      adaptiveGoalsSubscription.unsubscribe();
+    };
   }, [documentId, user]);
 
   const getMilestoneIcon = (type: string) => {
@@ -101,6 +169,14 @@ export function DynamicLearningMilestones({ documentId }: DynamicLearningMilesto
     }
   };
 
+  const getAdaptiveInfo = (milestone: DynamicMilestone) => {
+    const adaptiveGoal = adaptiveGoals[milestone.milestone_type];
+    if (!adaptiveGoal) return null;
+
+    const improvement = ((adaptiveGoal.current_target - milestone.target_value) / milestone.target_value * 100).toFixed(0);
+    return `+${improvement}% Verbesserung`;
+  };
+
   return (
     <Card className="w-full">
       <CardHeader>
@@ -119,10 +195,17 @@ export function DynamicLearningMilestones({ documentId }: DynamicLearningMilesto
                   {getMilestoneTitle(milestone.milestone_type)}
                 </span>
               </div>
-              <span className="text-sm text-muted-foreground">
-                {milestone.current_value}/{milestone.target_value}
-                {milestone.milestone_type === 'study_time' ? ' min' : '%'}
-              </span>
+              <div className="flex flex-col items-end">
+                <span className="text-sm text-muted-foreground">
+                  {milestone.current_value}/{milestone.target_value}
+                  {milestone.milestone_type === 'study_time' ? ' min' : '%'}
+                </span>
+                {getAdaptiveInfo(milestone) && (
+                  <span className="text-xs text-green-500 font-medium">
+                    {getAdaptiveInfo(milestone)}
+                  </span>
+                )}
+              </div>
             </div>
             <Progress 
               value={(milestone.current_value / milestone.target_value) * 100} 
