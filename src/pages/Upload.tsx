@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { useState } from "react"
@@ -48,7 +49,7 @@ export default function Upload() {
     }
 
     const response = await fetch(
-      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/analyze-document`,
+      `${supabase.supabaseUrl}/functions/v1/analyze-document`,
       {
         method: 'POST',
         headers: {
@@ -74,7 +75,7 @@ export default function Upload() {
       throw new Error('Nicht angemeldet')
     }
 
-    console.log('Uploading to:', `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/upload-document`)
+    console.log('Uploading to:', `${supabase.supabaseUrl}/functions/v1/upload-document`)
 
     const formData = new FormData()
     formData.append('file', fileUpload.file)
@@ -87,7 +88,7 @@ export default function Upload() {
 
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/upload-document`,
+        `${supabase.supabaseUrl}/functions/v1/upload-document`,
         {
           method: 'POST',
           headers: {
