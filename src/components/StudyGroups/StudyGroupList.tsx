@@ -16,7 +16,7 @@ interface StudyGroup {
   created_by: string;
   is_private: boolean;
   max_members: number;
-  member_count?: number;
+  member_count: number;
 }
 
 export function StudyGroupList() {
@@ -37,7 +37,11 @@ export function StudyGroupList() {
         throw error;
       }
 
-      return data as StudyGroup[];
+      // Transformiere die Daten in das erwartete Format
+      return data.map(group => ({
+        ...group,
+        member_count: group.member_count[0]?.count || 0
+      })) as StudyGroup[];
     }
   });
 
