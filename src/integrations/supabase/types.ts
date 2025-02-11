@@ -203,6 +203,50 @@ export type Database = {
           },
         ]
       }
+      dynamic_learning_milestones: {
+        Row: {
+          completed: boolean | null
+          completed_at: string | null
+          created_at: string
+          current_value: number | null
+          document_id: string
+          id: string
+          milestone_type: string
+          target_value: number
+          user_id: string
+        }
+        Insert: {
+          completed?: boolean | null
+          completed_at?: string | null
+          created_at?: string
+          current_value?: number | null
+          document_id: string
+          id?: string
+          milestone_type: string
+          target_value: number
+          user_id: string
+        }
+        Update: {
+          completed?: boolean | null
+          completed_at?: string | null
+          created_at?: string
+          current_value?: number | null
+          document_id?: string
+          id?: string
+          milestone_type?: string
+          target_value?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dynamic_learning_milestones_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       group_members: {
         Row: {
           group_id: string
