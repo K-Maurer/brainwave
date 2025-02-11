@@ -78,10 +78,12 @@ export default function Index() {
     return <WelcomeScreen />;
   }
 
-  const hasFilters = searchParams.query || 
+  const hasFilters = Boolean(
+    searchParams.query || 
     searchParams.category || 
     searchParams.difficultyLevel || 
-    searchParams.tags.length > 0;
+    searchParams.tags.length > 0
+  );
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-purple-100 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-slate-900">
