@@ -9,6 +9,68 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      document_shares: {
+        Row: {
+          created_at: string
+          document_id: string | null
+          expires_at: string | null
+          group_id: string | null
+          id: string
+          permission_level: string | null
+          shared_by: string | null
+          shared_with: string | null
+        }
+        Insert: {
+          created_at?: string
+          document_id?: string | null
+          expires_at?: string | null
+          group_id?: string | null
+          id?: string
+          permission_level?: string | null
+          shared_by?: string | null
+          shared_with?: string | null
+        }
+        Update: {
+          created_at?: string
+          document_id?: string | null
+          expires_at?: string | null
+          group_id?: string | null
+          id?: string
+          permission_level?: string | null
+          shared_by?: string | null
+          shared_with?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_shares_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_shares_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "study_groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_shares_shared_by_fkey"
+            columns: ["shared_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_shares_shared_with_fkey"
+            columns: ["shared_with"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       documents: {
         Row: {
           category: string | null
@@ -68,6 +130,96 @@ export type Database = {
           },
         ]
       }
+      group_members: {
+        Row: {
+          group_id: string
+          joined_at: string
+          role: string | null
+          user_id: string
+        }
+        Insert: {
+          group_id: string
+          joined_at?: string
+          role?: string | null
+          user_id: string
+        }
+        Update: {
+          group_id?: string
+          joined_at?: string
+          role?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_members_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "study_groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "group_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      learning_progress: {
+        Row: {
+          comprehension_level: number | null
+          created_at: string
+          document_id: string | null
+          id: string
+          last_studied_at: string | null
+          notes: string | null
+          progress_percentage: number | null
+          study_time_minutes: number | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          comprehension_level?: number | null
+          created_at?: string
+          document_id?: string | null
+          id?: string
+          last_studied_at?: string | null
+          notes?: string | null
+          progress_percentage?: number | null
+          study_time_minutes?: number | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          comprehension_level?: number | null
+          created_at?: string
+          document_id?: string | null
+          id?: string
+          last_studied_at?: string | null
+          notes?: string | null
+          progress_percentage?: number | null
+          study_time_minutes?: number | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "learning_progress_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "learning_progress_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -76,6 +228,10 @@ export type Database = {
           full_name: string | null
           id: string
           learning_preferences: Json | null
+          learning_style: Json | null
+          subscription_status: string | null
+          subscription_type: string | null
+          subscription_valid_until: string | null
           updated_at: string
           username: string | null
         }
@@ -86,6 +242,10 @@ export type Database = {
           full_name?: string | null
           id: string
           learning_preferences?: Json | null
+          learning_style?: Json | null
+          subscription_status?: string | null
+          subscription_type?: string | null
+          subscription_valid_until?: string | null
           updated_at?: string
           username?: string | null
         }
@@ -96,6 +256,10 @@ export type Database = {
           full_name?: string | null
           id?: string
           learning_preferences?: Json | null
+          learning_style?: Json | null
+          subscription_status?: string | null
+          subscription_type?: string | null
+          subscription_valid_until?: string | null
           updated_at?: string
           username?: string | null
         }
@@ -143,6 +307,44 @@ export type Database = {
           {
             foreignKeyName: "progress_user_id_fkey"
             columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      study_groups: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_private: boolean | null
+          max_members: number | null
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_private?: boolean | null
+          max_members?: number | null
+          name: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_private?: boolean | null
+          max_members?: number | null
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "study_groups_created_by_fkey"
+            columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]

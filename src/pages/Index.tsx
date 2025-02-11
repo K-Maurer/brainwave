@@ -11,6 +11,7 @@ import { useState, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { WelcomeScreen } from "@/components/WelcomeScreen";
 import { DocumentList } from "@/components/DocumentList";
+import { StudyGroupList } from "@/components/StudyGroups/StudyGroupList";
 
 interface Document {
   id: string;
@@ -114,11 +115,15 @@ export default function Index() {
             </CardContent>
           </Card>
 
-          <DocumentList 
-            documents={documents} 
-            isLoading={isLoading} 
-            hasFilters={hasFilters}
-          />
+          <div className="grid gap-8">
+            <StudyGroupList />
+            
+            <DocumentList 
+              documents={documents} 
+              isLoading={isLoading} 
+              hasFilters={hasFilters}
+            />
+          </div>
         </div>
       </main>
     </div>
