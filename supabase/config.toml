@@ -7,3 +7,6 @@ verify_jwt = true
 [functions.analyze-document]
 verify_jwt = true
 
+[functions.generate-learning-content]
+verify_jwt = true
+

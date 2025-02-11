@@ -9,6 +9,47 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      ai_generated_content: {
+        Row: {
+          content: Json
+          content_type: string
+          created_at: string
+          document_id: string | null
+          id: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content: Json
+          content_type: string
+          created_at?: string
+          document_id?: string | null
+          id?: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: Json
+          content_type?: string
+          created_at?: string
+          document_id?: string | null
+          id?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_generated_content_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       document_shares: {
         Row: {
           created_at: string
@@ -165,6 +206,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      learning_analytics: {
+        Row: {
+          comprehension_score: number | null
+          focus_score: number | null
+          id: string
+          learning_style: string | null
+          session_duration: number
+          session_timestamp: string
+          user_id: string
+        }
+        Insert: {
+          comprehension_score?: number | null
+          focus_score?: number | null
+          id?: string
+          learning_style?: string | null
+          session_duration?: number
+          session_timestamp?: string
+          user_id: string
+        }
+        Update: {
+          comprehension_score?: number | null
+          focus_score?: number | null
+          id?: string
+          learning_style?: string | null
+          session_duration?: number
+          session_timestamp?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       learning_goals: {
         Row: {
