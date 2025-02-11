@@ -1,12 +1,17 @@
 
 import React, { useState } from 'react';
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
-import { Loader2, BookOpen, BrainCircuit, Layers, Network } from "lucide-react";
+import { Loader2, BrainCircuit } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
+import { Summary } from './ai-learning/Summary';
+import { Quiz } from './ai-learning/Quiz';
+import { Flashcards } from './ai-learning/Flashcards';
+import { Mindmap } from './ai-learning/Mindmap';
+import { ContentTabs } from './ai-learning/ContentTabs';
+import { GenerateButton } from './ai-learning/GenerateButton';
 
 interface AILearningToolsProps {
   documentId: string;
@@ -73,72 +78,13 @@ export function AILearningTools({ documentId, documentText }: AILearningToolsPro
   const renderContent = (content: AIContent) => {
     switch (content.content_type) {
       case 'summary':
-        return (
-          <div className="prose dark:prose-invert max-w-none">
-            {content.content.content}
-          </div>
-        );
+        return <Summary content={content.content.content} />;
       case 'quiz':
-        return (
-          <div className="space-y-6">
-            {content.content.questions?.map((q: any, i: number) => (
-              <div key={i} className="space-y-2">
-                <h3 className="font-medium">{q.question}</h3>
-                <div className="space-y-1">
-                  {q.options.map((option: string, j: number) => (
-                    <div
-                      key={j}
-                      className={`p-2 rounded-lg ${
-                        j === q.correctAnswer
-                          ? 'bg-green-500/10 border border-green-500/20'
-                          : 'bg-gray-100 dark:bg-gray-800'
-                      }`}
-                    >
-                      {option}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        );
+        return <Quiz questions={content.content.questions} />;
       case 'flashcards':
-        return (
-          <div className="grid gap-4 md:grid-cols-2">
-            {content.content.flashcards?.map((card: any, i: number) => (
-              <Card key={i} className="hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <CardTitle className="text-lg">{card.front}</CardTitle>
-                </CardHeader>
-                <CardContent className="bg-gray-50 dark:bg-gray-800/50">
-                  {card.back}
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        );
+        return <Flashcards flashcards={content.content.flashcards} />;
       case 'mindmap':
-        return (
-          <div className="space-y-4">
-            <h2 className="text-xl font-bold text-center">{content.content.central}</h2>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {content.content.branches?.map((branch: any, i: number) => (
-                <Card key={i} className="hover:shadow-lg transition-shadow">
-                  <CardHeader>
-                    <CardTitle className="text-lg">{branch.topic}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <ul className="list-disc list-inside space-y-1">
-                      {branch.subtopics.map((subtopic: string, j: number) => (
-                        <li key={j}>{subtopic}</li>
-                      ))}
-                    </ul>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-        );
+        return <Mindmap central={content.content.central} branches={content.content.branches} />;
       default:
         return null;
     }
@@ -154,24 +100,7 @@ export function AILearningTools({ documentId, documentText }: AILearningToolsPro
       </CardHeader>
       <CardContent>
         <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as any)}>
-          <TabsList className="grid grid-cols-4 mb-4">
-            <TabsTrigger value="summary" className="flex items-center gap-2">
-              <BookOpen className="h-4 w-4" />
-              <span className="hidden sm:inline">Zusammenfassung</span>
-            </TabsTrigger>
-            <TabsTrigger value="quiz" className="flex items-center gap-2">
-              <BrainCircuit className="h-4 w-4" />
-              <span className="hidden sm:inline">Quiz</span>
-            </TabsTrigger>
-            <TabsTrigger value="flashcards" className="flex items-center gap-2">
-              <Layers className="h-4 w-4" />
-              <span className="hidden sm:inline">Lernkarten</span>
-            </TabsTrigger>
-            <TabsTrigger value="mindmap" className="flex items-center gap-2">
-              <Network className="h-4 w-4" />
-              <span className="hidden sm:inline">Mindmap</span>
-            </TabsTrigger>
-          </TabsList>
+          <ContentTabs activeTab={activeTab} onTabChange={setActiveTab} />
 
           {isLoading ? (
             <div className="flex justify-center py-8">
@@ -179,20 +108,7 @@ export function AILearningTools({ documentId, documentText }: AILearningToolsPro
             </div>
           ) : (
             <>
-              <Button
-                onClick={generateContent}
-                disabled={isGenerating}
-                className="w-full mb-4"
-              >
-                {isGenerating ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Generiere Inhalte...
-                  </>
-                ) : (
-                  'Neue Inhalte generieren'
-                )}
-              </Button>
+              <GenerateButton isGenerating={isGenerating} onClick={generateContent} />
 
               <div className="space-y-6">
                 {aiContent
