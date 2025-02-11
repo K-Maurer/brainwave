@@ -80,11 +80,11 @@ export function SearchBar({
           />
         </div>
         <Select
-          value={searchParams.category ?? ""}
+          value={searchParams.category ?? "all"}
           onValueChange={(value) =>
             setSearchParams((prev) => ({
               ...prev,
-              category: value || null,
+              category: value === "all" ? null : value,
             }))
           }
         >
@@ -92,7 +92,7 @@ export function SearchBar({
             <SelectValue placeholder="Kategorie" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Alle Kategorien</SelectItem>
+            <SelectItem value="all">Alle Kategorien</SelectItem>
             {categories.map((category) => (
               <SelectItem key={category} value={category}>
                 {category}
@@ -101,11 +101,11 @@ export function SearchBar({
           </SelectContent>
         </Select>
         <Select
-          value={searchParams.difficultyLevel ?? ""}
+          value={searchParams.difficultyLevel ?? "all"}
           onValueChange={(value) =>
             setSearchParams((prev) => ({
               ...prev,
-              difficultyLevel: value || null,
+              difficultyLevel: value === "all" ? null : value,
             }))
           }
         >
@@ -113,7 +113,7 @@ export function SearchBar({
             <SelectValue placeholder="Schwierigkeitsgrad" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Alle Schwierigkeitsgrade</SelectItem>
+            <SelectItem value="all">Alle Schwierigkeitsgrade</SelectItem>
             {difficultyLevels.map((level) => (
               <SelectItem key={level} value={level}>
                 {level}
