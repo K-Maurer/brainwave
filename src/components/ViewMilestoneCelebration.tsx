@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import confetti from 'canvas-confetti';
 import { Trophy } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
+import { supabase } from "@/integrations/supabase/client";
 
 interface ViewMilestoneCelebrationProps {
   documentId: string;
