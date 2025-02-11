@@ -8,6 +8,12 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+// Funktion zum Kürzen des Textes
+function truncateText(text: string, maxLength: number = 100000): string {
+  if (text.length <= maxLength) return text;
+  return text.slice(0, maxLength) + "... [Text wurde gekürzt]";
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
@@ -59,6 +65,11 @@ serve(async (req) => {
     console.log('Calling Perplexity API...')
 
     try {
+      // Kürze den Text vor dem Senden
+      const truncatedContent = truncateText(content);
+      console.log('Content length before truncation:', content.length);
+      console.log('Content length after truncation:', truncatedContent.length);
+
       // Analyze document with Perplexity
       const perplexityResponse = await fetch('https://api.perplexity.ai/chat/completions', {
         method: 'POST',
@@ -87,7 +98,7 @@ serve(async (req) => {
             },
             {
               role: 'user',
-              content: content
+              content: truncatedContent
             }
           ],
           temperature: 0.2,
