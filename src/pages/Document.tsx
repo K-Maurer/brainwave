@@ -13,6 +13,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AILearningTools } from "@/components/AILearningTools";
+import { ViewMilestoneCelebration } from "@/components/ViewMilestoneCelebration";
 import { useEffect, useRef } from "react";
 
 interface Document {
@@ -133,6 +134,9 @@ export default function Document() {
           }}
         />
       </div>
+
+      {/* Add ViewMilestoneCelebration component */}
+      {id && <ViewMilestoneCelebration documentId={id} />}
 
       <Navigation />
       <main className="flex-1 p-8 relative backdrop-blur-sm">

@@ -50,6 +50,38 @@ export type Database = {
           },
         ]
       }
+      document_milestones: {
+        Row: {
+          achieved_at: string
+          celebrated: boolean
+          document_id: string
+          id: string
+          views_milestone: number
+        }
+        Insert: {
+          achieved_at?: string
+          celebrated?: boolean
+          document_id: string
+          id?: string
+          views_milestone: number
+        }
+        Update: {
+          achieved_at?: string
+          celebrated?: boolean
+          document_id?: string
+          id?: string
+          views_milestone?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_milestones_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       document_shares: {
         Row: {
           created_at: string
