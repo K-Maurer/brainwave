@@ -11,34 +11,52 @@ export type Database = {
     Tables: {
       documents: {
         Row: {
+          category: string | null
           created_at: string
           description: string | null
+          difficulty_level: string | null
           file_path: string
           file_type: string
           id: string
+          last_viewed_at: string | null
+          learning_type: string | null
           owner_id: string | null
+          tags: string[] | null
           title: string
           updated_at: string
+          view_count: number | null
         }
         Insert: {
+          category?: string | null
           created_at?: string
           description?: string | null
+          difficulty_level?: string | null
           file_path: string
           file_type: string
           id?: string
+          last_viewed_at?: string | null
+          learning_type?: string | null
           owner_id?: string | null
+          tags?: string[] | null
           title: string
           updated_at?: string
+          view_count?: number | null
         }
         Update: {
+          category?: string | null
           created_at?: string
           description?: string | null
+          difficulty_level?: string | null
           file_path?: string
           file_type?: string
           id?: string
+          last_viewed_at?: string | null
+          learning_type?: string | null
           owner_id?: string | null
+          tags?: string[] | null
           title?: string
           updated_at?: string
+          view_count?: number | null
         }
         Relationships: [
           {

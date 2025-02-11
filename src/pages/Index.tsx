@@ -1,7 +1,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Upload, FileText, Loader2 } from "lucide-react";
+import { Upload, FileText, Loader2, Clock, BookOpen, Tags } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Navigation } from "@/components/Navigation";
 import { useQuery } from "@tanstack/react-query";
@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { formatDistanceToNow } from "date-fns";
 import { de } from "date-fns/locale";
 import { useAuth } from "@/providers/AuthProvider";
+import { Badge } from "@/components/ui/badge";
 
 interface Document {
   id: string;
@@ -16,7 +17,29 @@ interface Document {
   description: string | null;
   file_type: string;
   created_at: string;
+  category: string | null;
+  tags: string[] | null;
+  learning_type: string | null;
+  difficulty_level: string | null;
+  view_count: number;
+  last_viewed_at: string | null;
 }
+
+const DifficultyBadge = ({ level }: { level: string | null }) => {
+  if (!level) return null;
+  
+  const colors = {
+    beginner: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100",
+    intermediate: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100",
+    advanced: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100"
+  };
+
+  return (
+    <span className={`px-2 py-1 rounded-full text-xs font-medium ${colors[level as keyof typeof colors]}`}>
+      {level}
+    </span>
+  );
+};
 
 export default function Index() {
   const { user } = useAuth();
@@ -104,15 +127,28 @@ export default function Index() {
                   className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-none shadow-lg hover:shadow-xl transition-all duration-300"
                 >
                   <CardHeader>
-                    <CardTitle className="text-xl font-semibold text-slate-800 dark:text-slate-100">
-                      {doc.title}
-                    </CardTitle>
-                    <CardDescription>
-                      Hochgeladen{" "}
-                      {formatDistanceToNow(new Date(doc.created_at), {
-                        addSuffix: true,
-                        locale: de,
-                      })}
+                    <div className="flex justify-between items-start">
+                      <CardTitle className="text-xl font-semibold text-slate-800 dark:text-slate-100">
+                        {doc.title}
+                      </CardTitle>
+                      {doc.difficulty_level && (
+                        <DifficultyBadge level={doc.difficulty_level} />
+                      )}
+                    </div>
+                    <CardDescription className="space-y-2">
+                      <div className="flex items-center gap-2 text-sm">
+                        <Clock className="h-4 w-4" />
+                        {formatDistanceToNow(new Date(doc.created_at), {
+                          addSuffix: true,
+                          locale: de,
+                        })}
+                      </div>
+                      {doc.view_count > 0 && (
+                        <div className="flex items-center gap-2 text-sm">
+                          <BookOpen className="h-4 w-4" />
+                          {doc.view_count} mal angesehen
+                        </div>
+                      )}
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -121,9 +157,37 @@ export default function Index() {
                         {doc.description}
                       </p>
                     )}
-                    <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
-                      <FileText className="h-4 w-4" />
-                      {doc.file_type}
+                    <div className="space-y-3">
+                      {doc.category && (
+                        <div className="flex items-center gap-2">
+                          <FileText className="h-4 w-4 text-slate-500 dark:text-slate-400" />
+                          <span className="text-sm text-slate-600 dark:text-slate-300">
+                            {doc.category}
+                          </span>
+                        </div>
+                      )}
+                      {doc.tags && doc.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-2">
+                          <Tags className="h-4 w-4 text-slate-500 dark:text-slate-400" />
+                          {doc.tags.map((tag, index) => (
+                            <Badge
+                              key={index}
+                              variant="secondary"
+                              className="text-xs"
+                            >
+                              {tag}
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
+                      {doc.learning_type && (
+                        <div className="flex items-center gap-2">
+                          <BookOpen className="h-4 w-4 text-slate-500 dark:text-slate-400" />
+                          <span className="text-sm text-slate-600 dark:text-slate-300">
+                            {doc.learning_type}
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
