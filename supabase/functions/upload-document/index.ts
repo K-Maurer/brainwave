@@ -54,15 +54,15 @@ serve(async (req) => {
     }
 
     // Sanitize filename and get extension
-    const fileName = file.name.replace(/[^\x00-\x7F]/g, '')
+    const fileName = (file as File).name.replace(/[^\x00-\x7F]/g, '')
     const fileExt = fileName.split('.').pop()
     const filePath = `${user.id}/${crypto.randomUUID()}.${fileExt}`
 
     // Upload file to storage
     const { data: storageData, error: storageError } = await supabase.storage
       .from('documents')
-      .upload(filePath, file, {
-        contentType: file.type,
+      .upload(filePath, await (file as File).arrayBuffer(), {
+        contentType: (file as File).type,
         upsert: false
       })
 
@@ -84,7 +84,7 @@ serve(async (req) => {
         title: title,
         description: description || null,
         file_path: filePath,
-        file_type: file.type,
+        file_type: (file as File).type,
         owner_id: user.id,
         category: category || null,
         tags: tagArray,
