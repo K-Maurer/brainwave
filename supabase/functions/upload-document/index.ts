@@ -18,6 +18,10 @@ serve(async (req) => {
     const file = formData.get('file')
     const title = formData.get('title')
     const description = formData.get('description')
+    const category = formData.get('category')
+    const tags = formData.get('tags')
+    const learningType = formData.get('learning_type')
+    const difficultyLevel = formData.get('difficulty_level')
 
     if (!file || !title) {
       return new Response(
@@ -70,6 +74,9 @@ serve(async (req) => {
       )
     }
 
+    // Process tags if provided
+    const tagArray = tags ? tags.toString().split(',').map(tag => tag.trim()) : null
+
     // Create document record in database
     const { data: documentData, error: documentError } = await supabase
       .from('documents')
@@ -79,6 +86,11 @@ serve(async (req) => {
         file_path: filePath,
         file_type: file.type,
         owner_id: user.id,
+        category: category || null,
+        tags: tagArray,
+        learning_type: learningType || null,
+        difficulty_level: difficultyLevel || null,
+        view_count: 0,
       })
       .select()
       .single()

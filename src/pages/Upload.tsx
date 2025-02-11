@@ -9,6 +9,7 @@ import { useToast } from "@/components/ui/use-toast"
 import { supabase } from "@/integrations/supabase/client"
 import { Navigation } from "@/components/Navigation"
 import { Progress } from "@/components/ui/progress"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 interface FileUpload {
   file: File;
@@ -20,6 +21,10 @@ interface FileUpload {
 export default function Upload() {
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
+  const [category, setCategory] = useState("")
+  const [tags, setTags] = useState("")
+  const [learningType, setLearningType] = useState("")
+  const [difficultyLevel, setDifficultyLevel] = useState<string>("")
   const [files, setFiles] = useState<FileUpload[]>([])
   const [isUploading, setIsUploading] = useState(false)
   const { toast } = useToast()
@@ -66,9 +71,11 @@ export default function Upload() {
     const formData = new FormData()
     formData.append('file', fileUpload.file)
     formData.append('title', title)
-    if (description.trim()) {
-      formData.append('description', description)
-    }
+    if (description.trim()) formData.append('description', description)
+    if (category.trim()) formData.append('category', category)
+    if (tags.trim()) formData.append('tags', tags)
+    if (learningType.trim()) formData.append('learning_type', learningType)
+    if (difficultyLevel) formData.append('difficulty_level', difficultyLevel)
 
     const response = await fetch(
       `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/upload-document`,
@@ -158,30 +165,79 @@ export default function Upload() {
           <Card className="backdrop-blur-sm bg-white/80 dark:bg-slate-900/80 border-none shadow-xl">
             <CardHeader>
               <CardTitle className="text-2xl text-center text-slate-700 dark:text-slate-200">
-                Dateien auswählen
+                Dateien und Metadaten
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="title">Titel der Unterlagen</Label>
-                <Input 
-                  id="title" 
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="z.B. Mathe Kapitel 1" 
-                  className="bg-white/50 dark:bg-slate-800/50"
-                />
-              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="title">Titel der Unterlagen*</Label>
+                  <Input 
+                    id="title" 
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    placeholder="z.B. Mathe Kapitel 1" 
+                    className="bg-white/50 dark:bg-slate-800/50"
+                  />
+                </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="description">Beschreibung (optional)</Label>
-                <Input 
-                  id="description" 
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Kurze Beschreibung der Unterlagen" 
-                  className="bg-white/50 dark:bg-slate-800/50"
-                />
+                <div className="space-y-2">
+                  <Label htmlFor="category">Kategorie</Label>
+                  <Input 
+                    id="category" 
+                    value={category}
+                    onChange={(e) => setCategory(e.target.value)}
+                    placeholder="z.B. Mathematik" 
+                    className="bg-white/50 dark:bg-slate-800/50"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="description">Beschreibung</Label>
+                  <Input 
+                    id="description" 
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Kurze Beschreibung der Unterlagen" 
+                    className="bg-white/50 dark:bg-slate-800/50"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="tags">Tags (mit Komma getrennt)</Label>
+                  <Input 
+                    id="tags" 
+                    value={tags}
+                    onChange={(e) => setTags(e.target.value)}
+                    placeholder="z.B. algebra, gleichungen, basics" 
+                    className="bg-white/50 dark:bg-slate-800/50"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="learningType">Lerntyp</Label>
+                  <Input 
+                    id="learningType" 
+                    value={learningType}
+                    onChange={(e) => setLearningType(e.target.value)}
+                    placeholder="z.B. Übungsaufgaben" 
+                    className="bg-white/50 dark:bg-slate-800/50"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="difficultyLevel">Schwierigkeitsgrad</Label>
+                  <Select value={difficultyLevel} onValueChange={setDifficultyLevel}>
+                    <SelectTrigger className="bg-white/50 dark:bg-slate-800/50">
+                      <SelectValue placeholder="Wählen Sie einen Schwierigkeitsgrad" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="beginner">Anfänger</SelectItem>
+                      <SelectItem value="intermediate">Fortgeschritten</SelectItem>
+                      <SelectItem value="advanced">Experte</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
               <div className="space-y-4">
