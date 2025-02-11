@@ -23,11 +23,11 @@ serve(async (req) => {
       )
     }
 
-    const openAIApiKey = Deno.env.get('OPENAI_API_KEY')
-    if (!openAIApiKey) {
-      console.error('OpenAI API key is not set')
+    const perplexityApiKey = Deno.env.get('PERPLEXITY_API_KEY')
+    if (!perplexityApiKey) {
+      console.error('Perplexity API key is not set')
       return new Response(
-        JSON.stringify({ error: 'OpenAI API key is not configured' }),
+        JSON.stringify({ error: 'Perplexity API key is not configured' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
       )
     }
@@ -56,18 +56,18 @@ serve(async (req) => {
       )
     }
 
-    console.log('Calling OpenAI API...')
+    console.log('Calling Perplexity API...')
 
     try {
-      // Analyze document with OpenAI
-      const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+      // Analyze document with Perplexity
+      const perplexityResponse = await fetch('https://api.perplexity.ai/chat/completions', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${openAIApiKey}`,
+          'Authorization': `Bearer ${perplexityApiKey}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'gpt-4o-mini',
+          model: 'llama-3.1-sonar-small-128k-online',
           messages: [
             {
               role: 'system',
@@ -89,21 +89,23 @@ serve(async (req) => {
               role: 'user',
               content: content
             }
-          ]
+          ],
+          temperature: 0.2,
+          max_tokens: 1000
         })
       })
 
-      if (!openAIResponse.ok) {
-        const errorData = await openAIResponse.text()
-        console.error('OpenAI API error:', errorData)
-        throw new Error(`OpenAI API error: ${errorData}`)
+      if (!perplexityResponse.ok) {
+        const errorData = await perplexityResponse.text()
+        console.error('Perplexity API error:', errorData)
+        throw new Error(`Perplexity API error: ${errorData}`)
       }
 
-      const analysis = await openAIResponse.json()
-      console.log('OpenAI API response:', analysis)
+      const analysis = await perplexityResponse.json()
+      console.log('Perplexity API response:', analysis)
 
       if (!analysis.choices?.[0]?.message?.content) {
-        throw new Error('Invalid response format from OpenAI')
+        throw new Error('Invalid response format from Perplexity')
       }
 
       const result = JSON.parse(analysis.choices[0].message.content)
@@ -132,9 +134,9 @@ serve(async (req) => {
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
 
-    } catch (openAIError) {
-      console.error('OpenAI API call failed:', openAIError)
-      throw new Error(`OpenAI API call failed: ${openAIError.message}`)
+    } catch (perplexityError) {
+      console.error('Perplexity API call failed:', perplexityError)
+      throw new Error(`Perplexity API call failed: ${perplexityError.message}`)
     }
 
   } catch (error) {
