@@ -1,95 +1,135 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
-import { Upload as UploadIcon } from "lucide-react"
+import { Upload as UploadIcon, X } from "lucide-react"
 import { useCallback, useState } from "react"
 import { useToast } from "@/components/ui/use-toast"
 import { supabase } from "@/integrations/supabase/client"
 import { Navigation } from "@/components/Navigation"
+import { Progress } from "@/components/ui/progress"
+
+interface FileUpload {
+  file: File;
+  progress: number;
+  status: 'pending' | 'uploading' | 'error' | 'complete';
+  error?: string;
+}
 
 export default function Upload() {
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
-  const [file, setFile] = useState<File | null>(null)
+  const [files, setFiles] = useState<FileUpload[]>([])
   const [isUploading, setIsUploading] = useState(false)
   const { toast } = useToast()
 
   const handleDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault()
-    const droppedFile = e.dataTransfer.files[0]
-    if (droppedFile) {
-      setFile(droppedFile)
-    }
+    const droppedFiles = Array.from(e.dataTransfer.files)
+    setFiles(prev => [
+      ...prev,
+      ...droppedFiles.map(file => ({
+        file,
+        progress: 0,
+        status: 'pending' as const
+      }))
+    ])
   }, [])
 
   const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0]
-    if (selectedFile) {
-      setFile(selectedFile)
-    }
+    const selectedFiles = Array.from(e.target.files || [])
+    setFiles(prev => [
+      ...prev,
+      ...selectedFiles.map(file => ({
+        file,
+        progress: 0,
+        status: 'pending' as const
+      }))
+    ])
   }, [])
 
   const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault()
   }, [])
 
+  const removeFile = (index: number) => {
+    setFiles(prev => prev.filter((_, i) => i !== index))
+  }
+
+  const uploadFile = async (fileUpload: FileUpload) => {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) {
+      throw new Error('Nicht angemeldet')
+    }
+
+    const formData = new FormData()
+    formData.append('file', fileUpload.file)
+    formData.append('title', title)
+    if (description.trim()) {
+      formData.append('description', description)
+    }
+
+    const response = await fetch(
+      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/upload-document`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: formData,
+      }
+    )
+
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.error || 'Fehler beim Hochladen')
+    }
+
+    return await response.json()
+  }
+
   const handleUpload = async () => {
-    if (!file || !title.trim()) {
+    if (!files.length || !title.trim()) {
       toast({
         title: "Fehler",
-        description: "Bitte geben Sie einen Titel ein und wählen Sie eine Datei aus.",
+        description: "Bitte geben Sie einen Titel ein und wählen Sie mindestens eine Datei aus.",
         variant: "destructive",
       })
       return
     }
 
     setIsUploading(true)
+
     try {
-      const formData = new FormData()
-      formData.append('file', file)
-      formData.append('title', title)
-      if (description.trim()) {
-        formData.append('description', description)
-      }
+      for (let i = 0; i < files.length; i++) {
+        setFiles(prev => prev.map((f, index) => 
+          index === i ? { ...f, status: 'uploading', progress: 0 } : f
+        ))
 
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) {
-        toast({
-          title: "Fehler",
-          description: "Sie müssen angemeldet sein, um Dateien hochzuladen.",
-          variant: "destructive",
-        })
-        return
-      }
-
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/upload-document`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${session.access_token}`,
-          },
-          body: formData,
+        try {
+          await uploadFile(files[i])
+          setFiles(prev => prev.map((f, index) => 
+            index === i ? { ...f, status: 'complete', progress: 100 } : f
+          ))
+        } catch (error: any) {
+          setFiles(prev => prev.map((f, index) => 
+            index === i ? { ...f, status: 'error', error: error.message, progress: 0 } : f
+          ))
+          console.error('Upload error:', error)
         }
-      )
-
-      const result = await response.json()
-
-      if (!response.ok) {
-        throw new Error(result.error || 'Fehler beim Hochladen')
       }
 
       toast({
         title: "Erfolg",
-        description: "Die Datei wurde erfolgreich hochgeladen.",
+        description: "Alle Dateien wurden erfolgreich hochgeladen.",
       })
 
-      // Reset form
+      // Reset form after successful upload
       setTitle("")
       setDescription("")
-      setFile(null)
-    } catch (error) {
+      setFiles([])
+    } catch (error: any) {
       console.error('Upload error:', error)
       toast({
         title: "Fehler",
@@ -154,7 +194,7 @@ export default function Upload() {
                     <UploadIcon className="h-12 w-12 text-slate-400 dark:text-slate-500" />
                     <div className="space-y-1">
                       <p className="text-slate-600 dark:text-slate-300">
-                        {file ? file.name : "Dateien hierher ziehen oder"}
+                        Dateien hierher ziehen oder
                       </p>
                       <label htmlFor="file-upload">
                         <Button variant="secondary" className="cursor-pointer">
@@ -165,6 +205,7 @@ export default function Upload() {
                           type="file"
                           className="hidden"
                           onChange={handleFileSelect}
+                          multiple
                           accept=".pdf,.doc,.docx,.ppt,.pptx,.jpg,.jpeg,.png"
                         />
                       </label>
@@ -174,6 +215,40 @@ export default function Upload() {
                     </p>
                   </div>
                 </div>
+
+                {files.length > 0 && (
+                  <div className="space-y-2">
+                    {files.map((fileUpload, index) => (
+                      <div 
+                        key={index}
+                        className="flex items-center gap-2 p-2 bg-white/50 dark:bg-slate-800/50 rounded-lg"
+                      >
+                        <div className="flex-1 min-w-0">
+                          <p className="truncate text-sm font-medium">
+                            {fileUpload.file.name}
+                          </p>
+                          <Progress 
+                            value={fileUpload.progress} 
+                            className="h-1 mt-1"
+                          />
+                          {fileUpload.status === 'error' && (
+                            <p className="text-xs text-red-500 mt-1">
+                              {fileUpload.error}
+                            </p>
+                          )}
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={() => removeFile(index)}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <Button 
