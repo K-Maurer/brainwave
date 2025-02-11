@@ -8,6 +8,7 @@ import { AuthProvider } from "@/providers/AuthProvider";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import Upload from "./pages/Upload";
+import Document from "./pages/Document";
 import Auth from "./pages/Auth";
 
 const queryClient = new QueryClient();
@@ -34,6 +35,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Upload />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/document/:id"
+              element={
+                <ProtectedRoute>
+                  <Document />
                 </ProtectedRoute>
               }
             />
