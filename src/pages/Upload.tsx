@@ -42,6 +42,33 @@ export default function Upload() {
     setFiles(prev => prev.filter((_, i) => i !== index))
   }
 
+  const analyzeDocument = async (documentId: string, content: string) => {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) {
+      throw new Error('Nicht angemeldet')
+    }
+
+    const response = await fetch(
+      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/analyze-document`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ documentId, content })
+      }
+    )
+
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.error || 'Fehler bei der Dokumentenanalyse')
+    }
+
+    const analysis = await response.json()
+    return analysis
+  }
+
   const uploadFile = async (fileUpload: FileUpload) => {
     const { data: { session } } = await supabase.auth.getSession()
     if (!session) {
@@ -73,7 +100,41 @@ export default function Upload() {
       throw new Error(error.error || 'Fehler beim Hochladen')
     }
 
-    return await response.json()
+    const result = await response.json()
+
+    // Analyze document if it's a text-based file
+    if (fileUpload.file.type.includes('text') || 
+        fileUpload.file.type.includes('pdf') ||
+        fileUpload.file.type.includes('document')) {
+      const reader = new FileReader()
+      reader.onload = async (e) => {
+        try {
+          const content = e.target?.result as string
+          const analysis = await analyzeDocument(result.document.id, content)
+          
+          // Update form with AI suggestions if fields are empty
+          if (!category) setCategory(analysis.analysis.category)
+          if (!tags) setTags(analysis.analysis.tags.join(', '))
+          if (!learningType) setLearningType(analysis.analysis.learning_type)
+          if (!difficultyLevel) setDifficultyLevel(analysis.analysis.difficulty_level)
+
+          toast({
+            title: "KI-Analyse abgeschlossen",
+            description: "Die Metadaten wurden automatisch ergänzt.",
+          })
+        } catch (error) {
+          console.error('Analysis error:', error)
+          toast({
+            title: "Hinweis",
+            description: "Die automatische Analyse konnte nicht durchgeführt werden.",
+            variant: "destructive",
+          })
+        }
+      }
+      reader.readAsText(fileUpload.file)
+    }
+
+    return result
   }
 
   const handleUpload = async () => {
@@ -142,7 +203,7 @@ export default function Upload() {
               Lernmaterialien hochladen
             </h1>
             <p className="text-slate-600 dark:text-slate-300">
-              Laden Sie hier Ihre Unterlagen hoch, um sie später zum Lernen zu verwenden
+              Laden Sie hier Ihre Unterlagen hoch. Unser KI-System analysiert sie automatisch und schlägt passende Kategorien vor.
             </p>
           </div>
 
