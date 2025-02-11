@@ -8,6 +8,16 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+// Funktion zum Extrahieren des JSON aus der Antwort
+function extractJSON(text: string): string {
+  // Versuche, JSON-Objekt aus dem Text zu extrahieren
+  const jsonMatch = text.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) {
+    throw new Error('Kein JSON in der Antwort gefunden');
+  }
+  return jsonMatch[0];
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
@@ -71,19 +81,15 @@ serve(async (req) => {
           messages: [
             {
               role: 'system',
-              content: `Du bist ein KI-Assistent für eine Lernplattform. Analysiere den folgenden Text und erstelle:
-              1. Eine Liste von relevanten Tags (maximal 5)
-              2. Eine Kategorie (z.B. Mathematik, Physik, Geschichte, etc.)
-              3. Eine Einschätzung des Schwierigkeitsgrads (beginner, intermediate, advanced)
-              4. Den am besten geeigneten Lerntyp (text, visual, audio, practical)
-              
-              Antworte im JSON-Format:
+              content: `Analysiere den folgenden Text und erstelle ein JSON-Objekt mit folgenden Eigenschaften:
               {
-                "tags": ["tag1", "tag2", ...],
-                "category": "Kategorie",
-                "difficulty_level": "Schwierigkeitsgrad",
-                "learning_type": "Lerntyp"
-              }`
+                "tags": ["tag1", "tag2", ...] (maximal 5 relevante Tags),
+                "category": "Eine Kategorie (z.B. Mathematik, Physik, Geschichte)",
+                "difficulty_level": "Schwierigkeitsgrad (beginner, intermediate, advanced)",
+                "learning_type": "Bevorzugter Lerntyp (text, visual, audio, practical)"
+              }
+              
+              Antworte NUR mit dem JSON-Objekt, ohne zusätzlichen Text.`
             },
             {
               role: 'user',
@@ -108,7 +114,10 @@ serve(async (req) => {
         throw new Error('Invalid response format from Perplexity')
       }
 
-      const result = JSON.parse(analysis.choices[0].message.content)
+      // Extrahiere das JSON aus der Antwort
+      const jsonContent = extractJSON(analysis.choices[0].message.content);
+      console.log('Extracted JSON:', jsonContent);
+      const result = JSON.parse(jsonContent);
 
       // Update document with analysis results
       const { error: updateError } = await supabase
