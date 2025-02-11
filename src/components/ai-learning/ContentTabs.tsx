@@ -3,9 +3,11 @@ import React from 'react';
 import { TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BookOpen, BrainCircuit, Layers, Network } from "lucide-react";
 
+type TabType = 'summary' | 'quiz' | 'flashcards' | 'mindmap';
+
 interface ContentTabsProps {
-  activeTab: string;
-  onTabChange: (value: string) => void;
+  activeTab: TabType;
+  onTabChange: (value: TabType) => void;
 }
 
 export function ContentTabs({ activeTab, onTabChange }: ContentTabsProps) {
