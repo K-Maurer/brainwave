@@ -9,6 +9,9 @@ import { FileUploadZone } from "@/components/upload/FileUploadZone"
 import { FileList } from "@/components/upload/FileList"
 import { MetadataForm } from "@/components/upload/MetadataForm"
 
+// Konstante für die Supabase-URL aus der Client-Konfiguration
+const SUPABASE_URL = 'https://xaxugthzwjaafuzamibn.supabase.co'
+
 interface FileUpload {
   file: File;
   progress: number;
@@ -49,7 +52,7 @@ export default function Upload() {
     }
 
     const response = await fetch(
-      `${supabase.supabaseUrl}/functions/v1/analyze-document`,
+      `${SUPABASE_URL}/functions/v1/analyze-document`,
       {
         method: 'POST',
         headers: {
@@ -75,7 +78,7 @@ export default function Upload() {
       throw new Error('Nicht angemeldet')
     }
 
-    console.log('Uploading to:', `${supabase.supabaseUrl}/functions/v1/upload-document`)
+    console.log('Uploading to:', `${SUPABASE_URL}/functions/v1/upload-document`)
 
     const formData = new FormData()
     formData.append('file', fileUpload.file)
@@ -88,7 +91,7 @@ export default function Upload() {
 
     try {
       const response = await fetch(
-        `${supabase.supabaseUrl}/functions/v1/upload-document`,
+        `${SUPABASE_URL}/functions/v1/upload-document`,
         {
           method: 'POST',
           headers: {
