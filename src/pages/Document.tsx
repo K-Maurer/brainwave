@@ -1,4 +1,3 @@
-
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,6 +18,7 @@ interface Document {
   title: string;
   description: string | null;
   file_type: string;
+  file_path: string;
   created_at: string;
   category: string | null;
   tags: string[] | null;
@@ -60,13 +60,11 @@ export default function Document() {
   const { data: documentContent } = useQuery({
     queryKey: ["document-content", id],
     queryFn: async () => {
-      if (!document?.id) return null;
+      if (!document?.file_path) return null;
 
-      const { data: content, error } = await supabase
+      const { data, error } = await supabase.storage
         .from("documents")
-        .select("content")
-        .eq("id", id)
-        .single();
+        .download(document.file_path);
 
       if (error) {
         toast({
@@ -77,9 +75,11 @@ export default function Document() {
         throw error;
       }
 
-      return content?.content || "";
+      // Convert the downloaded blob to text
+      const text = await data.text();
+      return text;
     },
-    enabled: !!document?.id,
+    enabled: !!document?.file_path,
   });
 
   const DifficultyBadge = ({ level }: { level: string }) => {
