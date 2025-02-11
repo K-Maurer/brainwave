@@ -363,6 +363,42 @@ export type Database = {
           },
         ]
       }
+      learning_streaks: {
+        Row: {
+          created_at: string | null
+          current_streak: number | null
+          daily_goal_completed: boolean | null
+          id: string
+          last_activity_date: string | null
+          longest_streak: number | null
+          motivation_score: number | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          current_streak?: number | null
+          daily_goal_completed?: boolean | null
+          id?: string
+          last_activity_date?: string | null
+          longest_streak?: number | null
+          motivation_score?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          current_streak?: number | null
+          daily_goal_completed?: boolean | null
+          id?: string
+          last_activity_date?: string | null
+          longest_streak?: number | null
+          motivation_score?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null

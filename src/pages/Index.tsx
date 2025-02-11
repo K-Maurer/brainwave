@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Upload } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -7,13 +6,14 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/providers/AuthProvider";
 import { SearchBar, SearchParams } from "@/components/SearchBar";
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { WelcomeScreen } from "@/components/WelcomeScreen";
 import { DocumentList } from "@/components/DocumentList";
 import { StudyGroupList } from "@/components/StudyGroups/StudyGroupList";
 import { LearningMetrics } from "@/components/dashboard/LearningMetrics";
 import { LearningGoals } from "@/components/dashboard/LearningGoals";
+import { LearningStreak } from "@/components/dashboard/LearningStreak";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
 
 interface Document {
@@ -102,7 +102,7 @@ export default function Index() {
       <Navigation />
       <main className="flex-1 px-4 py-8 sm:px-6 lg:px-8 relative">
         <div className="container mx-auto space-y-8 max-w-7xl">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 transform hover:scale-[1.01] transition-all duration-500">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div className="space-y-1">
               <h1 className="text-3xl font-bold bg-gradient-to-r from-white via-blue-400 to-blue-600 bg-clip-text text-transparent">
                 Dashboard
@@ -113,7 +113,7 @@ export default function Index() {
             </div>
             <Button 
               asChild 
-              className="bg-blue-600/80 hover:bg-blue-500/80 hover:shadow-lg hover:shadow-blue-500/20 backdrop-blur-sm transition-all duration-500 hover:-translate-y-1"
+              className="bg-blue-600/80 hover:bg-blue-500/80 hover:shadow-lg hover:shadow-blue-500/20 backdrop-blur-sm"
             >
               <Link to="/upload" className="flex items-center gap-2">
                 <Upload className="h-4 w-4" />
@@ -122,13 +122,13 @@ export default function Index() {
             </Button>
           </div>
 
-          <div className="rounded-xl glass-card p-6 hover:shadow-blue-500/10 transition-all duration-500 transform hover:scale-[1.01]">
+          <div className="rounded-xl glass-card p-6">
             <LearningMetrics />
           </div>
           
           <div className="grid gap-8 lg:grid-cols-3">
             <div className="lg:col-span-2 space-y-8">
-              <Card className="glass-card transform hover:scale-[1.01] transition-all duration-500">
+              <Card className="glass-card">
                 <CardContent className="pt-6">
                   <SearchBar
                     onSearch={setSearchParams}
@@ -140,7 +140,7 @@ export default function Index() {
                 </CardContent>
               </Card>
 
-              <div className="rounded-xl glass-card p-6 transform hover:scale-[1.01] transition-all duration-500">
+              <div className="rounded-xl glass-card p-6">
                 <DocumentList 
                   documents={documents} 
                   isLoading={isLoading} 
@@ -155,10 +155,13 @@ export default function Index() {
             </div>
 
             <div className="space-y-8">
-              <div className="rounded-xl glass-card p-6 transform hover:scale-[1.01] transition-all duration-500">
+              <div className="rounded-xl glass-card p-6">
+                <LearningStreak />
+              </div>
+              <div className="rounded-xl glass-card p-6">
                 <LearningGoals />
               </div>
-              <div className="rounded-xl glass-card p-6 transform hover:scale-[1.01] transition-all duration-500">
+              <div className="rounded-xl glass-card p-6">
                 <StudyGroupList />
               </div>
             </div>
