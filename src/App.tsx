@@ -14,11 +14,9 @@ import Auth from "./pages/Auth";
 const queryClient = new QueryClient();
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
+  <BrowserRouter>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
         <AuthProvider>
           <Routes>
             <Route path="/auth" element={<Auth />} />
@@ -47,10 +45,12 @@ const App = () => (
               }
             />
           </Routes>
+          <Toaster />
+          <Sonner />
         </AuthProvider>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
+      </TooltipProvider>
+    </QueryClientProvider>
+  </BrowserRouter>
 );
 
 export default App;
