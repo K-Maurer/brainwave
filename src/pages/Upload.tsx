@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { useState } from "react"
@@ -75,6 +74,8 @@ export default function Upload() {
       throw new Error('Nicht angemeldet')
     }
 
+    console.log('Uploading to:', `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/upload-document`)
+
     const formData = new FormData()
     formData.append('file', fileUpload.file)
     formData.append('title', title)
@@ -84,57 +85,64 @@ export default function Upload() {
     if (learningType.trim()) formData.append('learning_type', learningType)
     if (difficultyLevel) formData.append('difficulty_level', difficultyLevel)
 
-    const response = await fetch(
-      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/upload-document`,
-      {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`,
-        },
-        body: formData,
-      }
-    )
-
-    if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.error || 'Fehler beim Hochladen')
-    }
-
-    const result = await response.json()
-
-    // Analyze document if it's a text-based file
-    if (fileUpload.file.type.includes('text') || 
-        fileUpload.file.type.includes('pdf') ||
-        fileUpload.file.type.includes('document')) {
-      const reader = new FileReader()
-      reader.onload = async (e) => {
-        try {
-          const content = e.target?.result as string
-          const analysis = await analyzeDocument(result.document.id, content)
-          
-          // Update form with AI suggestions if fields are empty
-          if (!category) setCategory(analysis.analysis.category)
-          if (!tags) setTags(analysis.analysis.tags.join(', '))
-          if (!learningType) setLearningType(analysis.analysis.learning_type)
-          if (!difficultyLevel) setDifficultyLevel(analysis.analysis.difficulty_level)
-
-          toast({
-            title: "KI-Analyse abgeschlossen",
-            description: "Die Metadaten wurden automatisch ergänzt.",
-          })
-        } catch (error) {
-          console.error('Analysis error:', error)
-          toast({
-            title: "Hinweis",
-            description: "Die automatische Analyse konnte nicht durchgeführt werden.",
-            variant: "destructive",
-          })
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/upload-document`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+          },
+          body: formData,
         }
-      }
-      reader.readAsText(fileUpload.file)
-    }
+      )
 
-    return result
+      if (!response.ok) {
+        const error = await response.json()
+        console.error('Upload error:', error)
+        throw new Error(error.error || `HTTP error! status: ${response.status}`)
+      }
+
+      const result = await response.json()
+      console.log('Upload success:', result)
+
+      // Analyze document if it's a text-based file
+      if (fileUpload.file.type.includes('text') || 
+          fileUpload.file.type.includes('pdf') ||
+          fileUpload.file.type.includes('document')) {
+        const reader = new FileReader()
+        reader.onload = async (e) => {
+          try {
+            const content = e.target?.result as string
+            const analysis = await analyzeDocument(result.document.id, content)
+            
+            // Update form with AI suggestions if fields are empty
+            if (!category) setCategory(analysis.analysis.category)
+            if (!tags) setTags(analysis.analysis.tags.join(', '))
+            if (!learningType) setLearningType(analysis.analysis.learning_type)
+            if (!difficultyLevel) setDifficultyLevel(analysis.analysis.difficulty_level)
+
+            toast({
+              title: "KI-Analyse abgeschlossen",
+              description: "Die Metadaten wurden automatisch ergänzt.",
+            })
+          } catch (error) {
+            console.error('Analysis error:', error)
+            toast({
+              title: "Hinweis",
+              description: "Die automatische Analyse konnte nicht durchgeführt werden.",
+              variant: "destructive",
+            })
+          }
+        }
+        reader.readAsText(fileUpload.file)
+      }
+
+      return result
+    } catch (error: any) {
+      console.error('Upload error:', error)
+      throw new Error(error.message || 'Fehler beim Hochladen')
+    }
   }
 
   const handleUpload = async () => {
