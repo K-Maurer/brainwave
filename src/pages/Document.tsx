@@ -1,3 +1,4 @@
+
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,6 +13,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AILearningTools } from "@/components/AILearningTools";
+import { useEffect, useRef } from "react";
 
 interface Document {
   id: string;
@@ -31,6 +33,26 @@ interface Document {
 export default function Document() {
   const { id } = useParams();
   const { toast } = useToast();
+  const logoRef = useRef<HTMLImageElement>(null);
+
+  // Logo Animation Effect
+  useEffect(() => {
+    const logo = logoRef.current;
+    if (!logo) return;
+
+    const pulseAnimation = () => {
+      logo.style.transform = 'scale(1.05)';
+      logo.style.filter = 'brightness(1.2) drop-shadow(0 0 10px rgba(59, 130, 246, 0.5))';
+      
+      setTimeout(() => {
+        logo.style.transform = 'scale(1)';
+        logo.style.filter = 'brightness(1) drop-shadow(0 0 5px rgba(59, 130, 246, 0.3))';
+      }, 1000);
+    };
+
+    const interval = setInterval(pulseAnimation, 3000);
+    return () => clearInterval(interval);
+  }, []);
 
   const { data: document, isLoading } = useQuery({
     queryKey: ["document", id],
@@ -75,7 +97,6 @@ export default function Document() {
         throw error;
       }
 
-      // Convert the downloaded blob to text
       const text = await data.text();
       return text;
     },
@@ -99,8 +120,22 @@ export default function Document() {
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-purple-100 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-slate-900">
       <AnimatedBackground />
+      
+      {/* Floating Logo */}
+      <div className="fixed top-4 right-4 z-50 pointer-events-none">
+        <img
+          ref={logoRef}
+          src="/lovable-uploads/4ec65eac-403b-498b-9880-28bb854b37c6.png"
+          alt="Brainwave Logo"
+          className="w-16 h-16 transition-all duration-1000 ease-in-out"
+          style={{
+            filter: 'drop-shadow(0 0 5px rgba(59, 130, 246, 0.3))',
+          }}
+        />
+      </div>
+
       <Navigation />
-      <main className="flex-1 p-8 relative">
+      <main className="flex-1 p-8 relative backdrop-blur-sm">
         <div className="container mx-auto">
           {isLoading ? (
             <div className="space-y-4">
@@ -118,7 +153,9 @@ export default function Document() {
           ) : document ? (
             <>
               <div className="flex justify-between items-start mb-8">
-                <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-100">
+                <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-100 
+                             bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent
+                             animate-fade-in">
                   {document.title}
                 </h1>
                 {document.difficulty_level && (
@@ -127,13 +164,13 @@ export default function Document() {
               </div>
 
               <Tabs defaultValue="details" className="space-y-6">
-                <TabsList>
+                <TabsList className="glass-card">
                   <TabsTrigger value="details">Details</TabsTrigger>
                   <TabsTrigger value="learning">Lernhilfen</TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="details">
-                  <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-none shadow-lg">
+                <TabsContent value="details" className="animate-fade-in">
+                  <Card className="glass-card border-none shadow-lg">
                     <CardHeader>
                       <CardTitle className="text-xl">Details</CardTitle>
                     </CardHeader>
@@ -203,7 +240,7 @@ export default function Document() {
                   </Card>
                 </TabsContent>
 
-                <TabsContent value="learning">
+                <TabsContent value="learning" className="animate-fade-in">
                   <AILearningTools
                     documentId={document.id}
                     documentText={documentContent || ""}
