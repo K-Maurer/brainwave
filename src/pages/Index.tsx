@@ -10,6 +10,8 @@ import { formatDistanceToNow } from "date-fns";
 import { de } from "date-fns/locale";
 import { useAuth } from "@/providers/AuthProvider";
 import { Badge } from "@/components/ui/badge";
+import { SearchBar, SearchParams } from "@/components/SearchBar";
+import { useState, useMemo } from "react";
 
 interface Document {
   id: string;
@@ -43,19 +45,51 @@ const DifficultyBadge = ({ level }: { level: string | null }) => {
 
 export default function Index() {
   const { user } = useAuth();
+  const [searchParams, setSearchParams] = useState<SearchParams>({
+    query: "",
+    category: null,
+    learningType: null,
+    difficultyLevel: null,
+    tags: [],
+  });
+
   const { data: documents, isLoading } = useQuery({
-    queryKey: ["documents", user?.id],
+    queryKey: ["documents", user?.id, searchParams],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("documents")
-        .select("*")
-        .order("created_at", { ascending: false });
+      const { data, error } = await supabase.rpc("search_documents", {
+        search_query: searchParams.query || null,
+        category_filter: searchParams.category,
+        difficulty_filter: searchParams.difficultyLevel,
+        learning_type_filter: searchParams.learningType,
+        tag_filter: searchParams.tags.length > 0 ? searchParams.tags : null,
+      });
 
       if (error) throw error;
       return data as Document[];
     },
     enabled: !!user,
   });
+
+  const { categories, learningTypes, difficultyLevels, allTags } = useMemo(() => {
+    const cats = new Set<string>();
+    const types = new Set<string>();
+    const levels = new Set<string>();
+    const tags = new Set<string>();
+
+    documents?.forEach((doc) => {
+      if (doc.category) cats.add(doc.category);
+      if (doc.learning_type) types.add(doc.learning_type);
+      if (doc.difficulty_level) levels.add(doc.difficulty_level);
+      if (doc.tags) doc.tags.forEach((tag) => tags.add(tag));
+    });
+
+    return {
+      categories: Array.from(cats),
+      learningTypes: Array.from(types),
+      difficultyLevels: Array.from(levels),
+      allTags: Array.from(tags),
+    };
+  }, [documents]);
 
   if (!user) {
     return (
@@ -96,6 +130,18 @@ export default function Index() {
             </Button>
           </div>
 
+          <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-none shadow-lg mb-8">
+            <CardContent className="pt-6">
+              <SearchBar
+                onSearch={setSearchParams}
+                categories={categories}
+                learningTypes={learningTypes}
+                difficultyLevels={difficultyLevels}
+                allTags={allTags}
+              />
+            </CardContent>
+          </Card>
+
           {isLoading ? (
             <div className="flex justify-center items-center h-64">
               <Loader2 className="h-8 w-8 animate-spin text-slate-600 dark:text-slate-300" />
@@ -105,11 +151,14 @@ export default function Index() {
               <CardContent className="flex flex-col items-center justify-center p-12 text-center">
                 <FileText className="h-16 w-16 text-slate-400 dark:text-slate-500 mb-4" />
                 <h3 className="text-xl font-semibold text-slate-700 dark:text-slate-200 mb-2">
-                  Keine Dokumente vorhanden
+                  Keine Dokumente gefunden
                 </h3>
                 <p className="text-slate-600 dark:text-slate-300 mb-6 max-w-md">
-                  Sie haben noch keine Lernmaterialien hochgeladen. Beginnen Sie damit,
-                  Ihre ersten Unterlagen hochzuladen.
+                  {Object.values(searchParams).some((value) => 
+                    Array.isArray(value) ? value.length > 0 : value
+                  )
+                    ? "Keine Dokumente entsprechen Ihren Suchkriterien. Versuchen Sie es mit anderen Filtern."
+                    : "Sie haben noch keine Lernmaterialien hochgeladen. Beginnen Sie damit, Ihre ersten Unterlagen hochzuladen."}
                 </p>
                 <Button asChild>
                   <Link to="/upload" className="flex items-center gap-2">
@@ -122,75 +171,74 @@ export default function Index() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {documents.map((doc) => (
-                <Card
-                  key={doc.id}
-                  className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-none shadow-lg hover:shadow-xl transition-all duration-300"
-                >
-                  <CardHeader>
-                    <div className="flex justify-between items-start">
-                      <CardTitle className="text-xl font-semibold text-slate-800 dark:text-slate-100">
-                        {doc.title}
-                      </CardTitle>
-                      {doc.difficulty_level && (
-                        <DifficultyBadge level={doc.difficulty_level} />
-                      )}
-                    </div>
-                    <CardDescription className="space-y-2">
-                      <div className="flex items-center gap-2 text-sm">
-                        <Clock className="h-4 w-4" />
-                        {formatDistanceToNow(new Date(doc.created_at), {
-                          addSuffix: true,
-                          locale: de,
-                        })}
+                <Link key={doc.id} to={`/document/${doc.id}`}>
+                  <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-none shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer">
+                    <CardHeader>
+                      <div className="flex justify-between items-start">
+                        <CardTitle className="text-xl font-semibold text-slate-800 dark:text-slate-100">
+                          {doc.title}
+                        </CardTitle>
+                        {doc.difficulty_level && (
+                          <DifficultyBadge level={doc.difficulty_level} />
+                        )}
                       </div>
-                      {doc.view_count > 0 && (
+                      <CardDescription className="space-y-2">
                         <div className="flex items-center gap-2 text-sm">
-                          <BookOpen className="h-4 w-4" />
-                          {doc.view_count} mal angesehen
+                          <Clock className="h-4 w-4" />
+                          {formatDistanceToNow(new Date(doc.created_at), {
+                            addSuffix: true,
+                            locale: de,
+                          })}
                         </div>
+                        {doc.view_count > 0 && (
+                          <div className="flex items-center gap-2 text-sm">
+                            <BookOpen className="h-4 w-4" />
+                            {doc.view_count} mal angesehen
+                          </div>
+                        )}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      {doc.description && (
+                        <p className="text-slate-600 dark:text-slate-300 mb-4">
+                          {doc.description}
+                        </p>
                       )}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    {doc.description && (
-                      <p className="text-slate-600 dark:text-slate-300 mb-4">
-                        {doc.description}
-                      </p>
-                    )}
-                    <div className="space-y-3">
-                      {doc.category && (
-                        <div className="flex items-center gap-2">
-                          <FileText className="h-4 w-4 text-slate-500 dark:text-slate-400" />
-                          <span className="text-sm text-slate-600 dark:text-slate-300">
-                            {doc.category}
-                          </span>
-                        </div>
-                      )}
-                      {doc.tags && doc.tags.length > 0 && (
-                        <div className="flex flex-wrap gap-2">
-                          <Tags className="h-4 w-4 text-slate-500 dark:text-slate-400" />
-                          {doc.tags.map((tag, index) => (
-                            <Badge
-                              key={index}
-                              variant="secondary"
-                              className="text-xs"
-                            >
-                              {tag}
-                            </Badge>
-                          ))}
-                        </div>
-                      )}
-                      {doc.learning_type && (
-                        <div className="flex items-center gap-2">
-                          <BookOpen className="h-4 w-4 text-slate-500 dark:text-slate-400" />
-                          <span className="text-sm text-slate-600 dark:text-slate-300">
-                            {doc.learning_type}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
+                      <div className="space-y-3">
+                        {doc.category && (
+                          <div className="flex items-center gap-2">
+                            <FileText className="h-4 w-4 text-slate-500 dark:text-slate-400" />
+                            <span className="text-sm text-slate-600 dark:text-slate-300">
+                              {doc.category}
+                            </span>
+                          </div>
+                        )}
+                        {doc.tags && doc.tags.length > 0 && (
+                          <div className="flex flex-wrap gap-2">
+                            <Tags className="h-4 w-4 text-slate-500 dark:text-slate-400" />
+                            {doc.tags.map((tag, index) => (
+                              <Badge
+                                key={index}
+                                variant="secondary"
+                                className="text-xs"
+                              >
+                                {tag}
+                              </Badge>
+                            ))}
+                          </div>
+                        )}
+                        {doc.learning_type && (
+                          <div className="flex items-center gap-2">
+                            <BookOpen className="h-4 w-4 text-slate-500 dark:text-slate-400" />
+                            <span className="text-sm text-slate-600 dark:text-slate-300">
+                              {doc.learning_type}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
               ))}
             </div>
           )}
