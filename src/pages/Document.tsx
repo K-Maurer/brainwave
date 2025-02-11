@@ -1,4 +1,3 @@
-
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,6 +9,7 @@ import { format } from "date-fns";
 import { de } from "date-fns/locale";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/components/ui/use-toast";
+import { AnimatedBackground } from "@/components/AnimatedBackground";
 
 interface Document {
   id: string;
@@ -70,8 +70,9 @@ export default function Document() {
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-purple-100 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-slate-900">
+      <AnimatedBackground />
       <Navigation />
-      <main className="flex-1 p-8">
+      <main className="flex-1 p-8 relative">
         <div className="container mx-auto">
           {isLoading ? (
             <div className="space-y-4">

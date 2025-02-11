@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { useState } from "react"
@@ -8,6 +7,7 @@ import { Navigation } from "@/components/Navigation"
 import { FileUploadZone } from "@/components/upload/FileUploadZone"
 import { FileList } from "@/components/upload/FileList"
 import { MetadataForm } from "@/components/upload/MetadataForm"
+import { AnimatedBackground } from "@/components/AnimatedBackground"
 
 // Konstante für die Supabase-URL aus der Client-Konfiguration
 const SUPABASE_URL = 'https://xaxugthzwjaafuzamibn.supabase.co'
@@ -207,8 +207,9 @@ export default function Upload() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#fdfcfb] to-[#e2d1c3] dark:from-slate-900 dark:to-slate-800">
+      <AnimatedBackground />
       <Navigation />
-      <div className="p-6">
+      <div className="p-6 relative">
         <div className="max-w-3xl mx-auto space-y-8">
           <div className="text-center space-y-2">
             <h1 className="text-4xl font-bold text-slate-800 dark:text-slate-100">

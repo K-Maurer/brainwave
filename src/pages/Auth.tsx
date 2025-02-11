@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -7,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import { AnimatedBackground } from "@/components/AnimatedBackground";
 
 export default function Auth() {
   const [isLoading, setIsLoading] = useState(false);
@@ -61,8 +61,9 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#fdfcfb] to-[#e2d1c3] dark:from-slate-900 dark:to-slate-800 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md backdrop-blur-sm bg-white/80 dark:bg-slate-900/80 border-none shadow-xl">
+    <div className="min-h-screen flex items-center justify-center p-4">
+      <AnimatedBackground />
+      <Card className="w-full max-w-md backdrop-blur-sm bg-white/80 dark:bg-slate-900/80 border-none shadow-xl relative z-10">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold text-center">
             {isSignUp ? "Registrieren" : "Anmelden"}
