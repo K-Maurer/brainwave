@@ -10,7 +10,7 @@ const corsHeaders = {
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders })
+    return new Response(null, { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
   }
 
   try {
@@ -24,6 +24,7 @@ serve(async (req) => {
     const difficultyLevel = formData.get('difficulty_level')
 
     if (!file || !title) {
+      console.error('Validation error: Missing file or title')
       return new Response(
         JSON.stringify({ error: 'File and title are required' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
@@ -39,6 +40,7 @@ serve(async (req) => {
     // Get user ID from the authorization header
     const authHeader = req.headers.get('Authorization')?.split('Bearer ')[1]
     if (!authHeader) {
+      console.error('Authentication error: No authorization header')
       return new Response(
         JSON.stringify({ error: 'No authorization header' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
@@ -47,8 +49,9 @@ serve(async (req) => {
 
     const { data: { user }, error: userError } = await supabase.auth.getUser(authHeader)
     if (userError || !user) {
+      console.error('Authentication error:', userError)
       return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
+        JSON.stringify({ error: 'Unauthorized', details: userError }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
       )
     }
@@ -58,70 +61,101 @@ serve(async (req) => {
     const fileExt = fileName.split('.').pop()
     const filePath = `${user.id}/${crypto.randomUUID()}.${fileExt}`
 
-    // Convert File to ArrayBuffer for upload
-    const fileArrayBuffer = await (file as File).arrayBuffer()
+    try {
+      // Convert File to ArrayBuffer for upload
+      const fileArrayBuffer = await (file as File).arrayBuffer()
 
-    // Upload file to storage
-    const { data: storageData, error: storageError } = await supabase.storage
-      .from('documents')
-      .upload(filePath, fileArrayBuffer, {
-        contentType: (file as File).type,
-        upsert: false
-      })
+      // Upload file to storage
+      const { data: storageData, error: storageError } = await supabase.storage
+        .from('documents')
+        .upload(filePath, fileArrayBuffer, {
+          contentType: (file as File).type,
+          upsert: false
+        })
 
-    if (storageError) {
-      console.error('Storage error:', storageError)
+      if (storageError) {
+        console.error('Storage error:', storageError)
+        throw storageError
+      }
+
+      // Process tags if provided
+      const tagArray = tags ? tags.toString().split(',').map(tag => tag.trim()) : null
+
+      // Create document record in database
+      const { data: documentData, error: documentError } = await supabase
+        .from('documents')
+        .insert({
+          title: title,
+          description: description || null,
+          file_path: filePath,
+          file_type: (file as File).type,
+          owner_id: user.id,
+          category: category || null,
+          tags: tagArray,
+          learning_type: learningType || null,
+          difficulty_level: difficultyLevel || null,
+          view_count: 0,
+        })
+        .select()
+        .single()
+
+      if (documentError) {
+        console.error('Database error:', documentError)
+        // Clean up the uploaded file if database insert fails
+        await supabase.storage.from('documents').remove([filePath])
+        throw documentError
+      }
+
+      console.log('Upload successful:', { filePath, documentId: documentData.id })
+      
       return new Response(
-        JSON.stringify({ error: 'Failed to upload file', details: storageError }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+        JSON.stringify({ 
+          success: true,
+          message: 'Document uploaded successfully', 
+          document: documentData,
+          storage: storageData
+        }),
+        { 
+          headers: { 
+            ...corsHeaders, 
+            'Content-Type': 'application/json'
+          }, 
+          status: 200 
+        }
+      )
+
+    } catch (error) {
+      console.error('Operation error:', error)
+      return new Response(
+        JSON.stringify({ 
+          success: false,
+          error: 'Operation failed', 
+          details: error.message 
+        }),
+        { 
+          headers: { 
+            ...corsHeaders, 
+            'Content-Type': 'application/json'
+          }, 
+          status: 500 
+        }
       )
     }
-
-    // Process tags if provided
-    const tagArray = tags ? tags.toString().split(',').map(tag => tag.trim()) : null
-
-    // Create document record in database
-    const { data: documentData, error: documentError } = await supabase
-      .from('documents')
-      .insert({
-        title: title,
-        description: description || null,
-        file_path: filePath,
-        file_type: (file as File).type,
-        owner_id: user.id,
-        category: category || null,
-        tags: tagArray,
-        learning_type: learningType || null,
-        difficulty_level: difficultyLevel || null,
-        view_count: 0,
-      })
-      .select()
-      .single()
-
-    if (documentError) {
-      console.error('Database error:', documentError)
-      // Clean up the uploaded file if database insert fails
-      await supabase.storage.from('documents').remove([filePath])
-      return new Response(
-        JSON.stringify({ error: 'Failed to create document record', details: documentError }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
-      )
-    }
-
-    // Return success response with the document data
-    return new Response(
-      JSON.stringify({ 
-        message: 'Document uploaded successfully', 
-        document: documentData,
-        storage: storageData
-      }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
-    )
   } catch (error) {
     console.error('Unexpected error:', error)
     return new Response(
-      JSON.stringify({ error: 'An unexpected error occurred', details: error.message }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+      JSON.stringify({ 
+        success: false,
+        error: 'An unexpected error occurred', 
+        details: error.message 
+      }),
+      { 
+        headers: { 
+          ...corsHeaders, 
+          'Content-Type': 'application/json'
+        }, 
+        status: 500 
+      }
     )
   }
 })
