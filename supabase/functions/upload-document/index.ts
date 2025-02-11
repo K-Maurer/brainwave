@@ -58,10 +58,13 @@ serve(async (req) => {
     const fileExt = fileName.split('.').pop()
     const filePath = `${user.id}/${crypto.randomUUID()}.${fileExt}`
 
+    // Convert File to ArrayBuffer for upload
+    const fileArrayBuffer = await (file as File).arrayBuffer()
+
     // Upload file to storage
     const { data: storageData, error: storageError } = await supabase.storage
       .from('documents')
-      .upload(filePath, await (file as File).arrayBuffer(), {
+      .upload(filePath, fileArrayBuffer, {
         contentType: (file as File).type,
         upsert: false
       })
@@ -105,10 +108,12 @@ serve(async (req) => {
       )
     }
 
+    // Return success response with the document data
     return new Response(
       JSON.stringify({ 
         message: 'Document uploaded successfully', 
-        document: documentData 
+        document: documentData,
+        storage: storageData
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
     )
