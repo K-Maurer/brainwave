@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Upload } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -90,97 +89,91 @@ export default function Index() {
 
   return (
     <div className="min-h-screen flex flex-col relative overflow-hidden">
-      {/* Hochmoderner, technischer Hintergrund */}
-      <div className="fixed inset-0 bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-blue-900/30">
-        {/* Binäre Matrix Regenmuster */}
-        <div className="absolute inset-0 overflow-hidden opacity-[0.03] dark:opacity-[0.07]">
-          {Array.from({ length: 10 }).map((_, i) => (
+      {/* Futuristischer, technischer Hintergrund */}
+      <div className="fixed inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-blue-900/30">
+        {/* Neuronales Netzwerk Animation */}
+        <div className="absolute inset-0 overflow-hidden opacity-[0.15]">
+          {Array.from({ length: 15 }).map((_, i) => (
             <div
               key={i}
-              className="absolute text-xs animate-fall"
+              className="absolute h-px bg-gradient-to-r from-transparent via-blue-400 to-transparent animate-pulse-translate"
               style={{
-                left: `${i * 10}%`,
-                animationDelay: `${i * 0.3}s`,
-                writingMode: 'vertical-rl'
+                width: `${Math.random() * 300 + 200}px`,
+                top: `${Math.random() * 100}%`,
+                left: `${Math.random() * 100}%`,
+                transform: `rotate(${Math.random() * 360}deg)`,
+                animationDelay: `${Math.random() * 5}s`,
+                animationDuration: `${Math.random() * 10 + 5}s`
               }}
-            >
-              {Array.from({ length: 20 }).map((_, j) => (
-                <span key={j} className="inline-block my-1">
-                  {Math.random() > 0.5 ? '1' : '0'}
-                </span>
-              ))}
-            </div>
+            />
+          ))}
+        </div>
+
+        {/* 3D Geometrische Formen */}
+        <div className="absolute inset-0">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div
+              key={i}
+              className="absolute w-64 h-64 rounded-full mix-blend-overlay animate-wave opacity-30"
+              style={{
+                background: `radial-gradient(circle, 
+                  ${i % 2 === 0 ? 'rgba(59,130,246,0.4)' : 'rgba(147,51,234,0.3)'} 0%, 
+                  transparent 70%)`,
+                top: `${20 + i * 15}%`,
+                left: `${10 + i * 20}%`,
+                transform: `scale(${1 + i * 0.5})`,
+                animationDelay: `${i * 1.5}s`
+              }}
+            />
+          ))}
+        </div>
+
+        {/* Digitale Partikel */}
+        <div className="absolute inset-0">
+          {Array.from({ length: 50 }).map((_, i) => (
+            <div
+              key={i}
+              className="absolute w-1 h-1 rounded-full bg-blue-400/30 animate-pulse-slow"
+              style={{
+                top: `${Math.random() * 100}%`,
+                left: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 5}s`,
+                transform: `scale(${Math.random() * 2 + 0.5})`
+              }}
+            />
           ))}
         </div>
 
         {/* Futuristische Gitterlinien */}
-        <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-grid-black/[0.02] dark:bg-grid-white/[0.02]" 
-               style={{ 
-                 backgroundSize: '30px 30px',
-                 backgroundImage: `
-                   linear-gradient(to right, rgba(59, 130, 246, 0.05) 1px, transparent 1px),
-                   linear-gradient(to bottom, rgba(59, 130, 246, 0.05) 1px, transparent 1px)
-                 `
-               }}
-          />
-        </div>
-
-        {/* Dynamische Partikel-Wellen */}
-        <div className="absolute inset-0">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <div
-              key={i}
-              className="absolute w-[600px] h-[600px] rounded-full mix-blend-multiply filter blur-3xl animate-wave opacity-10"
-              style={{
-                background: i === 0 ? 'radial-gradient(circle, rgba(59,130,246,1) 0%, rgba(59,130,246,0) 70%)' :
-                           i === 1 ? 'radial-gradient(circle, rgba(147,51,234,1) 0%, rgba(147,51,234,0) 70%)' :
-                                   'radial-gradient(circle, rgba(79,70,229,1) 0%, rgba(79,70,229,0) 70%)',
-                top: `${20 + i * 30}%`,
-                left: `${20 + i * 20}%`,
-                animationDelay: `${i * 2}s`
-              }}
-            />
-          ))}
-        </div>
-
-        {/* Leuchtende Energie-Linien */}
-        <div className="absolute inset-0 overflow-hidden">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <div
-              key={i}
-              className="absolute h-px bg-gradient-to-r from-transparent via-blue-500/50 to-transparent animate-pulse-translate"
-              style={{
-                width: `${200 + i * 100}px`,
-                top: `${20 + i * 20}%`,
-                left: `${i % 2 === 0 ? -100 : 'auto'}`,
-                right: `${i % 2 === 0 ? 'auto' : -100}`,
-                animationDelay: `${i * 0.5}s`,
-                transform: `rotate(${i % 2 === 0 ? '15deg' : '-15deg'})`
-              }}
-            />
-          ))}
-        </div>
-
-        {/* Hochtech-Gradientenkreise */}
-        <div className="absolute top-0 left-0 w-[800px] h-[800px] bg-gradient-to-r from-blue-400/20 to-purple-400/20 rounded-full blur-3xl animate-pulse-slow" />
-        <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-gradient-to-r from-purple-400/20 to-blue-400/20 rounded-full blur-3xl animate-pulse-slow [animation-delay:2s]" />
+        <div className="absolute inset-0 bg-grid-white/[0.02]" 
+             style={{ 
+               backgroundSize: '30px 30px',
+               backgroundImage: `
+                 linear-gradient(to right, rgba(59, 130, 246, 0.1) 1px, transparent 1px),
+                 linear-gradient(to bottom, rgba(59, 130, 246, 0.1) 1px, transparent 1px)
+               `
+             }}
+        />
       </div>
 
       {/* Hauptinhalt */}
       <Navigation />
       <main className="flex-1 px-4 py-8 sm:px-6 lg:px-8 relative">
         <div className="container mx-auto space-y-8 max-w-7xl">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          {/* Header mit 3D-Effekt */}
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 transform hover:scale-[1.01] transition-all duration-500">
             <div className="space-y-1">
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 via-blue-600 to-violet-600 bg-clip-text text-transparent dark:from-white dark:via-blue-400 dark:to-violet-400">
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-white via-blue-400 to-blue-600 bg-clip-text text-transparent">
                 Dashboard
               </h1>
-              <p className="text-muted-foreground">
+              <p className="text-blue-200/70">
                 Willkommen zurück bei Ihrem personalisierten Lernbereich
               </p>
             </div>
-            <Button asChild className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 hover-lift hover-glow">
+            <Button 
+              asChild 
+              className="bg-blue-600/80 hover:bg-blue-500/80 hover:shadow-lg hover:shadow-blue-500/20 backdrop-blur-sm transition-all duration-500 hover:-translate-y-1"
+            >
               <Link to="/upload" className="flex items-center gap-2">
                 <Upload className="h-4 w-4" />
                 Neue Datei hochladen
@@ -188,13 +181,15 @@ export default function Index() {
             </Button>
           </div>
 
-          <div className="rounded-xl glass-card p-6 hover:shadow-blue-500/10 transition-all duration-500">
+          {/* Metriken-Karte mit Glassmorphismus */}
+          <div className="rounded-xl glass-card p-6 hover:shadow-blue-500/10 transition-all duration-500 transform hover:scale-[1.01]">
             <LearningMetrics />
           </div>
           
+          {/* 3-Spalten-Layout mit schwebendem Effekt */}
           <div className="grid gap-8 lg:grid-cols-3">
             <div className="lg:col-span-2 space-y-8">
-              <Card className="glass-card">
+              <Card className="glass-card transform hover:scale-[1.01] transition-all duration-500">
                 <CardContent className="pt-6">
                   <SearchBar
                     onSearch={setSearchParams}
@@ -206,7 +201,7 @@ export default function Index() {
                 </CardContent>
               </Card>
 
-              <div className="rounded-xl glass-card p-6">
+              <div className="rounded-xl glass-card p-6 transform hover:scale-[1.01] transition-all duration-500">
                 <DocumentList 
                   documents={documents} 
                   isLoading={isLoading} 
@@ -216,10 +211,10 @@ export default function Index() {
             </div>
 
             <div className="space-y-8">
-              <div className="rounded-xl glass-card p-6">
+              <div className="rounded-xl glass-card p-6 transform hover:scale-[1.01] transition-all duration-500">
                 <LearningGoals />
               </div>
-              <div className="rounded-xl glass-card p-6">
+              <div className="rounded-xl glass-card p-6 transform hover:scale-[1.01] transition-all duration-500">
                 <StudyGroupList />
               </div>
             </div>
