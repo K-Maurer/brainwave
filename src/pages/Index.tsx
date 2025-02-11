@@ -1,4 +1,5 @@
 
+import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Upload } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -7,7 +8,6 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/providers/AuthProvider";
 import { SearchBar, SearchParams } from "@/components/SearchBar";
-import { useState, useMemo, useCallback, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { WelcomeScreen } from "@/components/WelcomeScreen";
 import { DocumentList } from "@/components/DocumentList";
