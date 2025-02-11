@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Upload from "./pages/Upload";
+import Auth from "./pages/Auth";
 
 const queryClient = new QueryClient();
 
@@ -18,6 +19,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/upload" element={<Upload />} />
+          <Route path="/auth" element={<Auth />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
