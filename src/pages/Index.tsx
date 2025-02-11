@@ -6,7 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/providers/AuthProvider";
 import { SearchBar, SearchParams } from "@/components/SearchBar";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { WelcomeScreen } from "@/components/WelcomeScreen";
 import { DocumentList } from "@/components/DocumentList";
@@ -30,6 +30,8 @@ interface Document {
 
 export default function Index() {
   const { user } = useAuth();
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  
   const [searchParams, setSearchParams] = useState<SearchParams>({
     query: "",
     category: null,
@@ -76,83 +78,116 @@ export default function Index() {
     };
   }, [documents]);
 
+  // Maus-Position-Handler für interaktive Effekte
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    setMousePosition({
+      x: (e.clientX / window.innerWidth) * 2 - 1,
+      y: (e.clientY / window.innerHeight) * 2 - 1
+    });
+  }, []);
+
+  useEffect(() => {
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, [handleMouseMove]);
+
   if (!user) {
     return <WelcomeScreen />;
   }
 
-  const hasFilters = Boolean(
-    searchParams.query || 
-    searchParams.category || 
-    searchParams.difficultyLevel || 
-    searchParams.tags.length > 0
-  );
-
   return (
     <div className="min-h-screen flex flex-col relative overflow-hidden">
-      {/* Futuristischer, technischer Hintergrund */}
+      {/* Verbesserter neuronaler Hintergrund */}
       <div className="fixed inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-blue-900/30">
-        {/* Neuronales Netzwerk Animation */}
-        <div className="absolute inset-0 overflow-hidden opacity-[0.15]">
-          {Array.from({ length: 15 }).map((_, i) => (
+        {/* Neuronale Verbindungen */}
+        <div className="absolute inset-0 overflow-hidden">
+          {Array.from({ length: 20 }).map((_, i) => (
             <div
-              key={i}
-              className="absolute h-px bg-gradient-to-r from-transparent via-blue-400 to-transparent animate-pulse-translate"
+              key={`neuron-${i}`}
+              className="absolute opacity-[0.15]"
               style={{
-                width: `${Math.random() * 300 + 200}px`,
+                width: `${Math.random() * 400 + 100}px`,
+                height: '1px',
+                background: `linear-gradient(90deg, 
+                  transparent,
+                  rgba(59, 130, 246, ${0.3 + Math.random() * 0.4}),
+                  transparent
+                )`,
                 top: `${Math.random() * 100}%`,
                 left: `${Math.random() * 100}%`,
-                transform: `rotate(${Math.random() * 360}deg)`,
-                animationDelay: `${Math.random() * 5}s`,
-                animationDuration: `${Math.random() * 10 + 5}s`
+                transform: `
+                  rotate(${Math.random() * 360}deg)
+                  translateX(${mousePosition.x * 20}px)
+                  translateY(${mousePosition.y * 20}px)
+                `,
+                transition: 'transform 0.5s ease-out',
+                animation: `pulse-translate ${8 + Math.random() * 4}s infinite`,
               }}
             />
           ))}
         </div>
 
-        {/* 3D Geometrische Formen */}
+        {/* Synapsen (Knotenpunkte) */}
         <div className="absolute inset-0">
-          {Array.from({ length: 5 }).map((_, i) => (
+          {Array.from({ length: 30 }).map((_, i) => (
             <div
-              key={i}
-              className="absolute w-64 h-64 rounded-full mix-blend-overlay animate-wave opacity-30"
+              key={`synapse-${i}`}
+              className="absolute rounded-full"
               style={{
-                background: `radial-gradient(circle, 
-                  ${i % 2 === 0 ? 'rgba(59,130,246,0.4)' : 'rgba(147,51,234,0.3)'} 0%, 
-                  transparent 70%)`,
-                top: `${20 + i * 15}%`,
-                left: `${10 + i * 20}%`,
-                transform: `scale(${1 + i * 0.5})`,
-                animationDelay: `${i * 1.5}s`
-              }}
-            />
-          ))}
-        </div>
-
-        {/* Digitale Partikel */}
-        <div className="absolute inset-0">
-          {Array.from({ length: 50 }).map((_, i) => (
-            <div
-              key={i}
-              className="absolute w-1 h-1 rounded-full bg-blue-400/30 animate-pulse-slow"
-              style={{
+                width: `${Math.random() * 4 + 2}px`,
+                height: `${Math.random() * 4 + 2}px`,
+                background: `radial-gradient(circle, rgba(59,130,246,0.4) 0%, transparent 70%)`,
+                boxShadow: '0 0 10px rgba(59,130,246,0.3)',
                 top: `${Math.random() * 100}%`,
                 left: `${Math.random() * 100}%`,
-                animationDelay: `${Math.random() * 5}s`,
-                transform: `scale(${Math.random() * 2 + 0.5})`
+                transform: `
+                  scale(${1 + Math.sin(Date.now() / 1000) * 0.2})
+                  translateX(${mousePosition.x * 30}px)
+                  translateY(${mousePosition.y * 30}px)
+                `,
+                transition: 'transform 0.8s ease-out',
+                animation: `pulse-slow ${6 + Math.random() * 4}s infinite`,
               }}
             />
           ))}
         </div>
 
-        {/* Futuristische Gitterlinien */}
-        <div className="absolute inset-0 bg-grid-white/[0.02]" 
-             style={{ 
-               backgroundSize: '30px 30px',
-               backgroundImage: `
-                 linear-gradient(to right, rgba(59, 130, 246, 0.1) 1px, transparent 1px),
-                 linear-gradient(to bottom, rgba(59, 130, 246, 0.1) 1px, transparent 1px)
-               `
-             }}
+        {/* Gehirnwellen-Animation */}
+        <div className="absolute inset-0">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div
+              key={`wave-${i}`}
+              className="absolute w-full h-1 opacity-[0.05]"
+              style={{
+                top: `${30 + i * 20}%`,
+                background: `linear-gradient(90deg, 
+                  transparent,
+                  rgba(59, 130, 246, 0.5),
+                  rgba(147, 51, 234, 0.5),
+                  transparent
+                )`,
+                transform: `translateY(${Math.sin(Date.now() / 2000 + i) * 50}px)`,
+                animation: `wave ${10 + i * 2}s infinite ease-in-out`,
+              }}
+            />
+          ))}
+        </div>
+
+        {/* Verbessertes Gitternetz */}
+        <div 
+          className="absolute inset-0 bg-grid-white/[0.02]" 
+          style={{ 
+            backgroundSize: '30px 30px',
+            backgroundImage: `
+              linear-gradient(to right, rgba(59, 130, 246, 0.1) 1px, transparent 1px),
+              linear-gradient(to bottom, rgba(59, 130, 246, 0.1) 1px, transparent 1px)
+            `,
+            transform: `
+              translateX(${mousePosition.x * 10}px)
+              translateY(${mousePosition.y * 10}px)
+            `,
+            transition: 'transform 1s ease-out',
+          }}
         />
       </div>
 
@@ -205,7 +240,12 @@ export default function Index() {
                 <DocumentList 
                   documents={documents} 
                   isLoading={isLoading} 
-                  hasFilters={hasFilters}
+                  hasFilters={Boolean(
+                    searchParams.query || 
+                    searchParams.category || 
+                    searchParams.difficultyLevel || 
+                    searchParams.tags.length > 0
+                  )}
                 />
               </div>
             </div>
