@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -65,20 +64,21 @@
 @layer utilities {
   /* Fade Animationen */
   .animate-fade-in {
-    animation: fadeIn 0.6s ease-out;
+    animation: fadeIn 0.6s ease-out forwards;
   }
 
   .animate-slide-up {
-    animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    opacity: 0;
   }
 
   .animate-scale {
-    animation: scale 0.4s ease-out;
+    animation: scale 0.4s ease-out forwards;
   }
 
   /* Hover Effekte */
   .hover-lift {
-    @apply transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg;
+    @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-lg;
   }
 
   .hover-glow {
@@ -91,7 +91,7 @@
   }
 
   .glass-card {
-    @apply glass hover:bg-white/80 dark:hover:bg-gray-900/80 transition-colors duration-300;
+    @apply glass hover:bg-white/80 dark:hover:bg-gray-900/80 transition-all duration-300 hover:shadow-lg hover:-translate-y-1;
   }
 
   /* Gradients */
@@ -101,6 +101,19 @@
 
   .gradient-border {
     @apply border-transparent bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-border;
+  }
+
+  /* Grid Pattern */
+  .bg-grid-black {
+    background-size: 50px 50px;
+    background-image: linear-gradient(to right, rgb(0 0 0 / 0.1) 1px, transparent 1px),
+                     linear-gradient(to bottom, rgb(0 0 0 / 0.1) 1px, transparent 1px);
+  }
+
+  .bg-grid-white {
+    background-size: 50px 50px;
+    background-image: linear-gradient(to right, rgb(255 255 255 / 0.1) 1px, transparent 1px),
+                     linear-gradient(to bottom, rgb(255 255 255 / 0.1) 1px, transparent 1px);
   }
 }
 
