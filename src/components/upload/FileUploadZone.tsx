@@ -23,6 +23,11 @@ export function FileUploadZone({ onFileSelect }: FileUploadZoneProps) {
     e.preventDefault()
   }, [])
 
+  const handleButtonClick = () => {
+    // Programmatisch den Input-Click auslösen
+    document.getElementById('file-upload')?.click()
+  }
+
   return (
     <div 
       onDrop={handleDrop}
@@ -35,19 +40,22 @@ export function FileUploadZone({ onFileSelect }: FileUploadZoneProps) {
           <p className="text-slate-600 dark:text-slate-300">
             Dateien hierher ziehen oder
           </p>
-          <label htmlFor="file-upload">
-            <Button variant="secondary" className="cursor-pointer">
-              Dateien auswählen
-            </Button>
-            <input
-              id="file-upload"
-              type="file"
-              className="hidden"
-              onChange={handleFileSelect}
-              multiple
-              accept=".pdf,.doc,.docx,.ppt,.pptx,.jpg,.jpeg,.png"
-            />
-          </label>
+          <Button 
+            variant="secondary" 
+            className="cursor-pointer"
+            onClick={handleButtonClick}
+            type="button"
+          >
+            Dateien auswählen
+          </Button>
+          <input
+            id="file-upload"
+            type="file"
+            className="hidden"
+            onChange={handleFileSelect}
+            multiple
+            accept=".pdf,.doc,.docx,.ppt,.pptx,.jpg,.jpeg,.png"
+          />
         </div>
         <p className="text-sm text-slate-500 dark:text-slate-400">
           PDF, Word, PowerPoint oder Bilder
