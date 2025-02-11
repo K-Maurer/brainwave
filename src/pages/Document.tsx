@@ -1,3 +1,4 @@
+
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,6 +11,8 @@ import { de } from "date-fns/locale";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/components/ui/use-toast";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AILearningTools } from "@/components/AILearningTools";
 
 interface Document {
   id: string;
@@ -52,6 +55,31 @@ export default function Document() {
 
       return data as Document;
     },
+  });
+
+  const { data: documentContent } = useQuery({
+    queryKey: ["document-content", id],
+    queryFn: async () => {
+      if (!document?.id) return null;
+
+      const { data: content, error } = await supabase
+        .from("documents")
+        .select("content")
+        .eq("id", id)
+        .single();
+
+      if (error) {
+        toast({
+          variant: "destructive",
+          title: "Fehler beim Laden des Dokumenteninhalts",
+          description: error.message,
+        });
+        throw error;
+      }
+
+      return content?.content || "";
+    },
+    enabled: !!document?.id,
   });
 
   const DifficultyBadge = ({ level }: { level: string }) => {
@@ -98,74 +126,90 @@ export default function Document() {
                 )}
               </div>
 
-              <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-none shadow-lg mb-8">
-                <CardHeader>
-                  <CardTitle className="text-xl">Details</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  {document.description && (
-                    <p className="text-slate-600 dark:text-slate-300">
-                      {document.description}
-                    </p>
-                  )}
+              <Tabs defaultValue="details" className="space-y-6">
+                <TabsList>
+                  <TabsTrigger value="details">Details</TabsTrigger>
+                  <TabsTrigger value="learning">Lernhilfen</TabsTrigger>
+                </TabsList>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-4">
-                      <div className="flex items-center gap-2">
-                        <Calendar className="h-5 w-5 text-slate-500" />
-                        <span className="text-sm text-slate-600 dark:text-slate-300">
-                          Erstellt am {format(new Date(document.created_at), "PPP", { locale: de })}
-                        </span>
-                      </div>
-
-                      {document.category && (
-                        <div className="flex items-center gap-2">
-                          <FileText className="h-5 w-5 text-slate-500" />
-                          <span className="text-sm text-slate-600 dark:text-slate-300">
-                            {document.category}
-                          </span>
-                        </div>
+                <TabsContent value="details">
+                  <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-none shadow-lg">
+                    <CardHeader>
+                      <CardTitle className="text-xl">Details</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      {document.description && (
+                        <p className="text-slate-600 dark:text-slate-300">
+                          {document.description}
+                        </p>
                       )}
 
-                      {document.learning_type && (
-                        <div className="flex items-center gap-2">
-                          <BookOpen className="h-5 w-5 text-slate-500" />
-                          <span className="text-sm text-slate-600 dark:text-slate-300">
-                            {document.learning_type}
-                          </span>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-4">
+                          <div className="flex items-center gap-2">
+                            <Calendar className="h-5 w-5 text-slate-500" />
+                            <span className="text-sm text-slate-600 dark:text-slate-300">
+                              Erstellt am {format(new Date(document.created_at), "PPP", { locale: de })}
+                            </span>
+                          </div>
+
+                          {document.category && (
+                            <div className="flex items-center gap-2">
+                              <FileText className="h-5 w-5 text-slate-500" />
+                              <span className="text-sm text-slate-600 dark:text-slate-300">
+                                {document.category}
+                              </span>
+                            </div>
+                          )}
+
+                          {document.learning_type && (
+                            <div className="flex items-center gap-2">
+                              <BookOpen className="h-5 w-5 text-slate-500" />
+                              <span className="text-sm text-slate-600 dark:text-slate-300">
+                                {document.learning_type}
+                              </span>
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
 
-                    <div className="space-y-4">
-                      <div className="flex items-center gap-2">
-                        <Eye className="h-5 w-5 text-slate-500" />
-                        <span className="text-sm text-slate-600 dark:text-slate-300">
-                          {document.view_count} Aufrufe
-                        </span>
-                      </div>
+                        <div className="space-y-4">
+                          <div className="flex items-center gap-2">
+                            <Eye className="h-5 w-5 text-slate-500" />
+                            <span className="text-sm text-slate-600 dark:text-slate-300">
+                              {document.view_count} Aufrufe
+                            </span>
+                          </div>
 
-                      <div className="flex items-center gap-2">
-                        <BarChart className="h-5 w-5 text-slate-500" />
-                        <span className="text-sm text-slate-600 dark:text-slate-300">
-                          Dateityp: {document.file_type}
-                        </span>
-                      </div>
+                          <div className="flex items-center gap-2">
+                            <BarChart className="h-5 w-5 text-slate-500" />
+                            <span className="text-sm text-slate-600 dark:text-slate-300">
+                              Dateityp: {document.file_type}
+                            </span>
+                          </div>
 
-                      {document.tags && document.tags.length > 0 && (
-                        <div className="flex flex-wrap gap-2 items-center">
-                          <Tags className="h-5 w-5 text-slate-500" />
-                          {document.tags.map((tag, index) => (
-                            <Badge key={index} variant="secondary">
-                              {tag}
-                            </Badge>
-                          ))}
+                          {document.tags && document.tags.length > 0 && (
+                            <div className="flex flex-wrap gap-2 items-center">
+                              <Tags className="h-5 w-5 text-slate-500" />
+                              {document.tags.map((tag, index) => (
+                                <Badge key={index} variant="secondary">
+                                  {tag}
+                                </Badge>
+                              ))}
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                <TabsContent value="learning">
+                  <AILearningTools
+                    documentId={document.id}
+                    documentText={documentContent || ""}
+                  />
+                </TabsContent>
+              </Tabs>
             </>
           ) : (
             <div className="text-center py-12">
