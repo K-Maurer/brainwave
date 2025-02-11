@@ -154,7 +154,29 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      search_documents: {
+        Args: {
+          search_query?: string
+          category_filter?: string
+          difficulty_filter?: string
+          learning_type_filter?: string
+          tag_filter?: string[]
+        }
+        Returns: {
+          id: string
+          title: string
+          description: string
+          file_path: string
+          file_type: string
+          created_at: string
+          category: string
+          tags: string[]
+          learning_type: string
+          difficulty_level: string
+          view_count: number
+          last_viewed_at: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
