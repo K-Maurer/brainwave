@@ -166,6 +166,149 @@ export type Database = {
           },
         ]
       }
+      learning_goals: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          id: string
+          priority: number | null
+          status: string | null
+          target_date: string | null
+          title: string
+          user_id: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          priority?: number | null
+          status?: string | null
+          target_date?: string | null
+          title: string
+          user_id?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          priority?: number | null
+          status?: string | null
+          target_date?: string | null
+          title?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      learning_metrics: {
+        Row: {
+          created_at: string | null
+          document_id: string | null
+          focus_score: number | null
+          id: string
+          last_interaction: string | null
+          revision_count: number | null
+          study_time_minutes: number | null
+          understanding_level: number | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          document_id?: string | null
+          focus_score?: number | null
+          id?: string
+          last_interaction?: string | null
+          revision_count?: number | null
+          study_time_minutes?: number | null
+          understanding_level?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          document_id?: string | null
+          focus_score?: number | null
+          id?: string
+          last_interaction?: string | null
+          revision_count?: number | null
+          study_time_minutes?: number | null
+          understanding_level?: number | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "learning_metrics_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      learning_path_documents: {
+        Row: {
+          document_id: string
+          learning_path_id: string
+          sequence_order: number
+        }
+        Insert: {
+          document_id: string
+          learning_path_id: string
+          sequence_order: number
+        }
+        Update: {
+          document_id?: string
+          learning_path_id?: string
+          sequence_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "learning_path_documents_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "learning_path_documents_learning_path_id_fkey"
+            columns: ["learning_path_id"]
+            isOneToOne: false
+            referencedRelation: "learning_paths"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      learning_paths: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          difficulty_level: string | null
+          estimated_duration_hours: number | null
+          id: string
+          prerequisites: Json | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          difficulty_level?: string | null
+          estimated_duration_hours?: number | null
+          id?: string
+          prerequisites?: Json | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          difficulty_level?: string | null
+          estimated_duration_hours?: number | null
+          id?: string
+          prerequisites?: Json | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       learning_progress: {
         Row: {
           comprehension_level: number | null
@@ -347,6 +490,44 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      study_notes: {
+        Row: {
+          content: string
+          created_at: string | null
+          document_id: string | null
+          id: string
+          type: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          document_id?: string | null
+          id?: string
+          type?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          document_id?: string | null
+          id?: string
+          type?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "study_notes_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
             referencedColumns: ["id"]
           },
         ]
