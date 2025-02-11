@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { DocumentCard } from "./DocumentCard";
 import { Upload } from "lucide-react";
+import { useState } from "react";
 
 interface Document {
   id: string;
@@ -26,7 +27,18 @@ interface DocumentListProps {
   hasFilters: boolean;
 }
 
-export function DocumentList({ documents, isLoading, hasFilters }: DocumentListProps) {
+export function DocumentList({ documents: initialDocuments, isLoading, hasFilters }: DocumentListProps) {
+  const [documents, setDocuments] = useState<Document[] | undefined>(initialDocuments);
+
+  // Aktualisiere documents wenn sich initialDocuments ändert
+  if (documents !== initialDocuments) {
+    setDocuments(initialDocuments);
+  }
+
+  const handleDelete = (deletedId: string) => {
+    setDocuments((prevDocs) => prevDocs?.filter((doc) => doc.id !== deletedId));
+  };
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -62,7 +74,7 @@ export function DocumentList({ documents, isLoading, hasFilters }: DocumentListP
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {documents.map((doc) => (
-        <DocumentCard key={doc.id} document={doc} />
+        <DocumentCard key={doc.id} document={doc} onDelete={handleDelete} />
       ))}
     </div>
   );

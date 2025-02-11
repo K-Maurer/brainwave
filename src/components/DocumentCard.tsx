@@ -1,10 +1,14 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { FileText, Clock, BookOpen, Tags } from "lucide-react";
+import { FileText, Clock, BookOpen, Tags, Trash2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { de } from "date-fns/locale";
 import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface Document {
   id: string;
@@ -18,6 +22,11 @@ interface Document {
   difficulty_level: string | null;
   view_count: number;
   last_viewed_at: string | null;
+}
+
+interface DocumentCardProps {
+  document: Document;
+  onDelete?: (id: string) => void;
 }
 
 const DifficultyBadge = ({ level }: { level: string | null }) => {
@@ -36,10 +45,44 @@ const DifficultyBadge = ({ level }: { level: string | null }) => {
   );
 };
 
-export function DocumentCard({ document }: { document: Document }) {
+export function DocumentCard({ document, onDelete }: DocumentCardProps) {
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDelete = async (e: React.MouseEvent) => {
+    e.preventDefault(); // Verhindert Navigation zum Dokument
+    e.stopPropagation(); // Verhindert Bubble-Up des Events
+
+    if (isDeleting) return;
+
+    const confirmed = window.confirm(
+      "Sind Sie sicher, dass Sie dieses Dokument löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden."
+    );
+
+    if (!confirmed) return;
+
+    setIsDeleting(true);
+
+    try {
+      const { error } = await supabase
+        .from('documents')
+        .delete()
+        .eq('id', document.id);
+
+      if (error) throw error;
+
+      toast.success("Dokument erfolgreich gelöscht");
+      onDelete?.(document.id);
+    } catch (error) {
+      console.error('Error deleting document:', error);
+      toast.error("Fehler beim Löschen des Dokuments");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <Link to={`/document/${document.id}`}>
-      <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-none shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer">
+      <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-none shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer group">
         <CardHeader>
           <div className="flex justify-between items-start">
             <CardTitle className="text-xl font-semibold text-slate-800 dark:text-slate-100">
@@ -98,6 +141,17 @@ export function DocumentCard({ document }: { document: Document }) {
                 </span>
               </div>
             )}
+          </div>
+          <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            <Button
+              variant="destructive"
+              size="icon"
+              className="h-8 w-8"
+              onClick={handleDelete}
+              disabled={isDeleting}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
           </div>
         </CardContent>
       </Card>
