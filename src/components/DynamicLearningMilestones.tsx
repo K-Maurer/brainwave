@@ -13,12 +13,23 @@ export function DynamicLearningMilestones({ documentId }: DynamicLearningMilesto
   const { user } = useAuth();
   const { milestones, adaptiveGoals } = useMilestones(documentId, user?.id || '');
 
+  const completedMilestones = milestones.filter(
+    m => (m.current_value / m.target_value) * 100 >= 100
+  ).length;
+
   return (
     <Card className="w-full">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Trophy className="h-5 w-5 text-yellow-500" />
-          Lernmeilensteine
+          <div className="flex flex-col">
+            <span>Lernmeilensteine</span>
+            {milestones.length > 0 && (
+              <span className="text-sm font-normal text-muted-foreground">
+                {completedMilestones} von {milestones.length} erreicht
+              </span>
+            )}
+          </div>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
