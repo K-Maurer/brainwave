@@ -1,7 +1,7 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import { Configuration, OpenAIApi } from 'https://esm.sh/openai@3.3.0'
+import OpenAI from "https://esm.sh/openai@4.20.1";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -25,9 +25,9 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    const openai = new OpenAIApi(new Configuration({
+    const openai = new OpenAI({
       apiKey: Deno.env.get('OPENAI_API_KEY'),
-    }))
+    });
 
     const { documentId, contentType, text } = await req.json() as RequestBody
     const authHeader = req.headers.get('Authorization')!
@@ -60,7 +60,7 @@ serve(async (req) => {
 
     console.log(`Generating ${contentType} for document ${documentId}`)
     
-    const completion = await openai.createChatCompletion({
+    const completion = await openai.chat.completions.create({
       model: "gpt-4",
       messages: [
         {
@@ -73,9 +73,9 @@ serve(async (req) => {
         }
       ],
       temperature: 0.7,
-    })
+    });
 
-    const generatedContent = completion.data.choices[0].message?.content
+    const generatedContent = completion.choices[0].message.content;
 
     if (!generatedContent) {
       throw new Error('Keine Inhalte generiert')
