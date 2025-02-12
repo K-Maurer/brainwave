@@ -150,6 +150,24 @@ serve(async (req) => {
         throw dbError;
       }
 
+      // Aktualisiere die Lernstatistiken
+      const { error: metricsError } = await supabaseClient
+        .from('learning_metrics')
+        .upsert({
+          user_id: user.data.user.id,
+          document_id: documentId,
+          study_time_minutes: 5, // Standardwert für die Generierung von Lernmaterial
+          focus_score: 8, // Hoher Fokus-Score für aktives Lernen
+          understanding_level: 7, // Gutes Verständnisniveau durch Materialerstellung
+          last_interaction: new Date().toISOString()
+        }, {
+          onConflict: 'user_id,document_id'
+        });
+
+      if (metricsError) {
+        console.error('Metrics update error:', metricsError);
+      }
+
       return new Response(
         JSON.stringify(savedContent),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
