@@ -15,6 +15,55 @@ interface RequestBody {
   text: string;
 }
 
+const generatePrompt = (contentType: RequestBody['contentType'], text: string): string => {
+  const prompts = {
+    summary: `Als Bildungsexperte, erstelle eine klar strukturierte Zusammenfassung des folgenden Textes. 
+    Fokussiere auf die wichtigsten Konzepte und organisiere sie in Hauptpunkte und relevante Unterpunkte.
+    Stelle sicher, dass die Zusammenfassung leicht verständlich und logisch aufgebaut ist.\n\n${text}`,
+    
+    quiz: `Als Pädagoge, erstelle 5 lehrreiche Multiple-Choice-Fragen zum folgenden Text.
+    Die Fragen sollen verschiedene kognitive Ebenen (Verstehen, Anwenden, Analysieren) abdecken.
+    Formatiere die Ausgabe als JSON mit folgendem Schema:
+    {
+      "questions": [
+        {
+          "question": "Die Frage",
+          "options": ["Option A", "Option B", "Option C", "Option D"],
+          "correctAnswer": 0,
+          "explanation": "Kurze Erklärung der richtigen Antwort"
+        }
+      ]
+    }\n\n${text}`,
+    
+    flashcards: `Als Lernexperte, erstelle 5 effektive Lernkarten basierend auf dem Text.
+    Jede Karte sollte ein wichtiges Konzept oder eine zentrale Information behandeln.
+    Formatiere die Ausgabe als JSON mit folgendem Schema:
+    {
+      "flashcards": [
+        {
+          "front": "Frage oder Konzept",
+          "back": "Detaillierte Erklärung oder Antwort"
+        }
+      ]
+    }\n\n${text}`,
+    
+    mindmap: `Als Wissensvermittler, erstelle eine intuitive Mindmap-Struktur für den folgenden Text.
+    Identifiziere das zentrale Thema und organisiere die Hauptideen mit ihren Verbindungen.
+    Formatiere die Ausgabe als JSON mit folgendem Schema:
+    {
+      "central": "Hauptthema",
+      "branches": [
+        {
+          "topic": "Hauptzweig",
+          "subtopics": ["Unterthema 1", "Unterthema 2"]
+        }
+      ]
+    }\n\n${text}`
+  };
+
+  return prompts[contentType];
+};
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
@@ -36,13 +85,13 @@ serve(async (req) => {
       apiKey: openaiApiKey,
     });
 
-    const { documentId, contentType, text } = await req.json() as RequestBody
+    const { documentId, contentType, text } = await req.json() as RequestBody;
     if (!documentId || !contentType || !text) {
       throw new Error('Fehlende erforderliche Parameter');
     }
 
-    const authHeader = req.headers.get('Authorization')!
-    const user = await supabaseClient.auth.getUser(authHeader.replace('Bearer ', ''))
+    const authHeader = req.headers.get('Authorization')!;
+    const user = await supabaseClient.auth.getUser(authHeader.replace('Bearer ', ''));
 
     if (!user.data.user) {
       return new Response(
@@ -51,59 +100,39 @@ serve(async (req) => {
       )
     }
 
-    let prompt = ''
-    switch (contentType) {
-      case 'summary':
-        prompt = `Erstelle eine prägnante Zusammenfassung des folgenden Textes, strukturiert mit Hauptpunkten und Unterpunkten:\n\n${text}`
-        break
-      case 'quiz':
-        prompt = `Erstelle 5 Multiple-Choice-Fragen basierend auf dem folgenden Text. Format: JSON mit "questions" Array, jede Frage hat "question", "options" (Array) und "correctAnswer" (Index):\n\n${text}`
-        break
-      case 'flashcards':
-        prompt = `Erstelle 5 Lernkarten basierend auf dem folgenden Text. Format: JSON mit "flashcards" Array, jede Karte hat "front" und "back":\n\n${text}`
-        break
-      case 'mindmap':
-        prompt = `Erstelle eine Mindmap-Struktur basierend auf dem folgenden Text. Format: JSON mit "central" (Hauptthema) und "branches" (Array von Zweigen mit "topic" und "subtopics" Array):\n\n${text}`
-        break
-      default:
-        throw new Error('Ungültiger Content-Typ')
-    }
-
-    console.log(`Generating ${contentType} for document ${documentId}`)
+    console.log(`Generating ${contentType} for document ${documentId}`);
     
     try {
       const completion = await openai.chat.completions.create({
-        model: "gpt-4o-mini", // Verwende das optimierte Modell
+        model: "gpt-4o-mini",
         messages: [
           {
             role: "system",
-            content: "Du bist ein Experte für Bildung und Wissensvermittlung. Erstelle hochwertige Lernmaterialien basierend auf dem gegebenen Text."
+            content: "Du bist ein erfahrener Bildungsexperte mit Fokus auf effektive Wissensvermittlung. Deine Aufgabe ist es, Lerninhalte so aufzubereiten, dass sie optimal zum Verständnis und zur Merkfähigkeit beitragen."
           },
           {
             role: "user",
-            content: prompt
+            content: generatePrompt(contentType, text)
           }
         ],
         temperature: 0.7,
       });
 
       const generatedContent = completion.choices[0].message.content;
-
       if (!generatedContent) {
-        throw new Error('Keine Inhalte generiert')
+        throw new Error('Keine Inhalte generiert');
       }
 
-      let parsedContent
+      let parsedContent;
       try {
-        parsedContent = JSON.parse(generatedContent)
+        parsedContent = JSON.parse(generatedContent);
       } catch (parseError) {
-        console.log('Parsing als JSON fehlgeschlagen, verwende Rohtext', parseError);
-        parsedContent = { content: generatedContent }
+        console.log('Parsing als JSON fehlgeschlagen, verwende Rohtext:', parseError);
+        parsedContent = { content: generatedContent };
       }
 
       console.log('Content generated successfully');
 
-      // Speichern des generierten Inhalts in der Datenbank
       const { data: savedContent, error: dbError } = await supabaseClient
         .from('ai_generated_content')
         .insert({
@@ -114,7 +143,7 @@ serve(async (req) => {
           content: parsedContent
         })
         .select()
-        .single()
+        .single();
 
       if (dbError) {
         console.error('Database error:', dbError);
@@ -124,7 +153,7 @@ serve(async (req) => {
       return new Response(
         JSON.stringify(savedContent),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
+      );
 
     } catch (aiError) {
       console.error('OpenAI API error:', aiError);
@@ -132,7 +161,7 @@ serve(async (req) => {
     }
 
   } catch (error) {
-    console.error('Error:', error)
+    console.error('Error:', error);
     return new Response(
       JSON.stringify({ 
         error: error.message,
@@ -142,6 +171,6 @@ serve(async (req) => {
         status: 500, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
       }
-    )
+    );
   }
-})
+});
